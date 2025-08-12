@@ -6,7 +6,7 @@ import { APPLIANCES, REGIONS, carbonFactorKgPerKwhByRegion, electricityCostCLPPe
 import { calculateMonthlyKwh, calculateCostCLP, calculateEmissionsKg } from '@/lib/calculations'
 import type { ApplianceDefinition, ApplianceEntry } from '@/lib/types'
 import { formatCurrencyCLP, formatNumber } from '@/lib/format'
-import { getFirebase, maybeSaveScenario } from '@/lib/firebase'
+import { getFirebase, maybeSaveScenario, listScenariosByRut, deleteScenarioById, maybeGetRegionAverage } from '@/lib/firebase'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -18,6 +18,11 @@ export default function DashboardPage() {
   const [count, setCount] = useState<number>(1)
   const [compareA, setCompareA] = useState<string>('incandescent_bulb')
   const [compareB, setCompareB] = useState<string>('led_bulb')
+  const [compareHours, setCompareHours] = useState<number>(4)
+  const [priceDelta, setPriceDelta] = useState<number>(20000)
+  const [history, setHistory] = useState<any[]>([])
+  const [loadingHistory, setLoadingHistory] = useState<boolean>(false)
+  const [regionAvg, setRegionAvg] = useState<{ avgKwh: number; count: number } | null>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('mec_profile')
@@ -35,6 +40,22 @@ export default function DashboardPage() {
     localStorage.setItem('mec_entries', JSON.stringify(entries))
   }, [entries])
 
+  useEffect(() => {
+    ;(async () => {
+      const fb = await getFirebase()
+      if (!fb || !profile?.rut) return
+      setLoadingHistory(true)
+      try {
+        const items = await listScenariosByRut(fb, profile.rut, 20)
+        setHistory(items)
+        const avg = await maybeGetRegionAverage(fb, profile.region)
+        if (avg) setRegionAvg(avg)
+      } finally {
+        setLoadingHistory(false)
+      }
+    })()
+  }, [profile])
+
   const regionCode = profile?.region ?? 'RM'
   const costKwh = electricityCostCLPPerKwhByRegion[regionCode]
   const cf = carbonFactorKgPerKwhByRegion[regionCode]
@@ -46,11 +67,17 @@ export default function DashboardPage() {
     return { kwh, cost, co2 }
   }, [entries, costKwh, cf])
 
+  const totalAnnual = useMemo(() => ({
+    kwh: total.kwh * 12,
+    cost: total.cost * 12,
+    co2: total.co2 * 12,
+  }), [total])
+
   const ranked = useMemo(() => {
-    return [...entries].map((e) => {
+    return [...entries].map((e, index) => {
       const kwh = calculateMonthlyKwh(e.watts, e.hoursPerDay, e.quantity)
       const cost = calculateCostCLP(kwh, costKwh)
-      return { ...e, kwh, cost }
+      return { index, ...e, kwh, cost }
     }).sort((a, b) => b.cost - a.cost)
   }, [entries, costKwh])
 
@@ -64,6 +91,10 @@ export default function DashboardPage() {
       quantity: count,
     }
     setEntries((prev) => [...prev, entry])
+  }
+
+  const updateEntry = (index: number, patch: Partial<ApplianceEntry>) => {
+    setEntries((prev) => prev.map((e, i) => i === index ? { ...e, ...patch } : e))
   }
 
   const removeEntry = (index: number) => {
@@ -94,8 +125,25 @@ export default function DashboardPage() {
       const fb = await getFirebase()
       if (fb && profile?.rut) await maybeSaveScenario(fb, profile.rut, scenario)
       alert('Escenario guardado')
+      // Refresh history
+      if (fb && profile?.rut) setHistory(await listScenariosByRut(fb, profile.rut, 20))
     } catch (e) {
       console.warn('No se pudo sincronizar con Firebase:', e)
+    }
+  }
+
+  const loadScenario = (item: any) => {
+    if (!item) return
+    setEntries(item.entries)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const deleteScenario = async (id: string) => {
+    if (!confirm('¿Eliminar este escenario?')) return
+    const fb = await getFirebase()
+    if (fb && profile?.rut) {
+      await deleteScenarioById(fb, profile.rut, id)
+      setHistory(await listScenariosByRut(fb, profile.rut, 20))
     }
   }
 
@@ -175,19 +223,25 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {ranked.map((e, idx) => {
+                {ranked.map((e) => {
                   const kwh = calculateMonthlyKwh(e.watts, e.hoursPerDay, e.quantity)
                   const cost = calculateCostCLP(kwh, costKwh)
                   return (
-                    <tr key={idx} className="border-t border-white/10">
+                    <tr key={e.index} className="border-t border-white/10">
                       <td className="p-2">{e.name}</td>
-                      <td className="p-2 text-right">{formatNumber(e.watts)}</td>
-                      <td className="p-2 text-right">{formatNumber(e.hoursPerDay)}</td>
-                      <td className="p-2 text-right">{e.quantity}</td>
+                      <td className="p-2 text-right">
+                        <input className="input w-24 text-right" type="number" value={e.watts} onChange={(ev) => updateEntry(e.index, { watts: parseFloat(ev.target.value) })} />
+                      </td>
+                      <td className="p-2 text-right">
+                        <input className="input w-20 text-right" type="number" value={e.hoursPerDay} onChange={(ev) => updateEntry(e.index, { hoursPerDay: parseFloat(ev.target.value) })} />
+                      </td>
+                      <td className="p-2 text-right">
+                        <input className="input w-16 text-right" type="number" value={e.quantity} onChange={(ev) => updateEntry(e.index, { quantity: parseInt(ev.target.value) })} />
+                      </td>
                       <td className={`p-2 text-right ${severityColor(kwh)}`}>{formatNumber(kwh)}</td>
                       <td className="p-2 text-right">{formatCurrencyCLP(cost)}</td>
                       <td className="p-2 text-right">
-                        <button className="text-danger hover:underline" onClick={() => removeEntry(entries.indexOf(e))}>Eliminar</button>
+                        <button className="text-danger hover:underline" onClick={() => removeEntry(e.index)}>Eliminar</button>
                       </td>
                     </tr>
                   )
@@ -210,6 +264,21 @@ export default function DashboardPage() {
         <div>
           <div className="text-sm text-white/70">Emisiones estimadas</div>
           <div className="text-3xl font-semibold">{formatNumber(total.co2)} kg CO₂</div>
+        </div>
+        <div className="md:col-span-3 grid md:grid-cols-3 gap-4">
+          <div className="card">
+            <div className="text-sm text-white/70">Total anual</div>
+            <div className="font-semibold">{formatNumber(totalAnnual.kwh)} kWh</div>
+            <div>{formatCurrencyCLP(totalAnnual.cost)} · {formatNumber(totalAnnual.co2)} kg CO₂</div>
+          </div>
+          <div className="card">
+            <div className="text-sm text-white/70">Costo región</div>
+            <div>{formatCurrencyCLP(costKwh)} / kWh · {formatNumber(cf)} kg CO₂/kWh</div>
+          </div>
+          <div className="card">
+            <div className="text-sm text-white/70">Promedio regional (últimos)</div>
+            <div>{regionAvg ? `${formatNumber(regionAvg.avgKwh)} kWh/mes · n=${regionAvg.count}` : '—'}</div>
+          </div>
         </div>
         <div className="md:col-span-3">
           <button className="btn" onClick={onSaveScenario}>Guardar escenario</button>
@@ -235,33 +304,78 @@ export default function DashboardPage() {
               ))}
             </select>
           </div>
+          <div>
+            <label className="block text-sm mb-1">Horas/día</label>
+            <input className="input w-24" type="number" value={compareHours} onChange={(e) => setCompareHours(parseFloat(e.target.value))} />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Δ Precio (B vs A)</label>
+            <input className="input w-32" type="number" value={priceDelta} onChange={(e) => setPriceDelta(parseFloat(e.target.value))} />
+          </div>
         </div>
         <div className="grid md:grid-cols-3 gap-4 text-sm">
           <div className="card">
             <div className="font-medium mb-1">{compareDef(compareA).name}</div>
             <div>Potencia: {formatNumber(compareDef(compareA).watts)} W</div>
-            <div>kWh/mes (4h/día): {formatNumber(compareMonthlyKwh(compareA))}</div>
-            <div>Costo/mes: {formatCurrencyCLP(calculateCostCLP(compareMonthlyKwh(compareA), costKwh))}</div>
+            <div>kWh/mes ({compareHours}h/día): {formatNumber(compareMonthlyKwh(compareA, compareHours))}</div>
+            <div>Costo/mes: {formatCurrencyCLP(calculateCostCLP(compareMonthlyKwh(compareA, compareHours), costKwh))}</div>
           </div>
           <div className="card">
             <div className="font-medium mb-1">{compareDef(compareB).name}</div>
             <div>Potencia: {formatNumber(compareDef(compareB).watts)} W</div>
-            <div>kWh/mes (4h/día): {formatNumber(compareMonthlyKwh(compareB))}</div>
-            <div>Costo/mes: {formatCurrencyCLP(calculateCostCLP(compareMonthlyKwh(compareB), costKwh))}</div>
+            <div>kWh/mes ({compareHours}h/día): {formatNumber(compareMonthlyKwh(compareB, compareHours))}</div>
+            <div>Costo/mes: {formatCurrencyCLP(calculateCostCLP(compareMonthlyKwh(compareB, compareHours), costKwh))}</div>
           </div>
           <div className="card">
             <div className="font-medium mb-1">Retorno de inversión</div>
-            <div>Ejemplo: si el equipo B cuesta $20.000 más</div>
+            <div>Si B cuesta {formatCurrencyCLP(priceDelta)} más</div>
             <div>
               Recuperación: {
                 (() => {
-                  const months = investmentRecoveryMonths(20000, compareA, compareB)
+                  const months = investmentRecoveryMonths(priceDelta, compareA, compareB, compareHours)
                   return Number.isFinite(months) ? `${formatNumber(months)} meses` : 'No aplica'
                 })()
               }
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="card">
+        <h3 className="text-lg font-semibold mb-2">Historial de escenarios</h3>
+        {loadingHistory ? (
+          <p className="text-white/70 text-sm">Cargando…</p>
+        ) : history.length === 0 ? (
+          <p className="text-white/70 text-sm">Aún no tienes escenarios guardados.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="text-white/70">
+                <tr>
+                  <th className="text-left p-2">Nombre</th>
+                  <th className="text-left p-2">Fecha</th>
+                  <th className="text-right p-2">kWh/mes</th>
+                  <th className="text-right p-2">Costo/mes</th>
+                  <th className="text-right p-2">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((h) => (
+                  <tr key={h.id} className="border-t border-white/10">
+                    <td className="p-2">{h.name}</td>
+                    <td className="p-2">{new Date(h.createdAt).toLocaleString('es-CL')}</td>
+                    <td className="p-2 text-right">{formatNumber(h.totals.kwh)}</td>
+                    <td className="p-2 text-right">{formatCurrencyCLP(h.totals.cost)}</td>
+                    <td className="p-2 text-right space-x-2">
+                      <button className="hover:underline" onClick={() => loadScenario(h)}>Cargar</button>
+                      <button className="text-danger hover:underline" onClick={() => deleteScenario(h.id!)}>Eliminar</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <section className="card">
