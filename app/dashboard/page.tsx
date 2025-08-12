@@ -7,6 +7,8 @@ import { calculateMonthlyKwh, calculateCostCLP, calculateEmissionsKg } from '@/l
 import type { ApplianceDefinition, ApplianceEntry } from '@/lib/types'
 import { formatCurrencyCLP, formatNumber } from '@/lib/format'
 import { getFirebase, maybeSaveScenario, listScenariosByRut, deleteScenarioById, maybeGetRegionAverage } from '@/lib/firebase'
+import ConsumptionChart from '@/components/ConsumptionChart'
+import SavingsCalculator from '@/components/SavingsCalculator'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -454,35 +456,106 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* Summary cards */}
+        {/* Summary cards and Chart */}
         {entries.length > 0 && (
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card text-center">
-              <div className="text-sm text-white/70 mb-2">Consumo Total Mensual</div>
-              <div className="text-3xl font-bold gradient-text mb-1">
-                {formatNumber(total.kwh)}
+          <>
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="card text-center">
+                <div className="text-sm text-white/70 mb-2">Consumo Total Mensual</div>
+                <div className="text-3xl font-bold gradient-text mb-1">
+                  {formatNumber(total.kwh)}
+                </div>
+                <div className="text-white/80">kWh</div>
+                <div className="text-xs text-white/60 mt-2">
+                  Equivale a {Math.round(total.kwh / 30)} kWh/día
+                </div>
               </div>
-              <div className="text-white/80">kWh</div>
-            </div>
-            
-            <div className="card text-center">
-              <div className="text-sm text-white/70 mb-2">Costo Mensual Estimado</div>
-              <div className="text-3xl font-bold text-warning mb-1">
-                {formatCurrencyCLP(total.cost)}
+              
+              <div className="card text-center">
+                <div className="text-sm text-white/70 mb-2">Costo Mensual Estimado</div>
+                <div className="text-3xl font-bold text-warning mb-1">
+                  {formatCurrencyCLP(total.cost)}
+                </div>
+                <div className="text-white/80 text-sm">
+                  Anual: {formatCurrencyCLP(totalAnnual.cost)}
+                </div>
+                <div className="text-xs text-white/60 mt-2">
+                  {formatCurrencyCLP(total.cost / 30)}/día
+                </div>
               </div>
-              <div className="text-white/80 text-sm">
-                Anual: {formatCurrencyCLP(totalAnnual.cost)}
+              
+              <div className="card text-center">
+                <div className="text-sm text-white/70 mb-2">Emisiones CO₂</div>
+                <div className="text-3xl font-bold text-success mb-1">
+                  {formatNumber(total.co2)}
+                </div>
+                <div className="text-white/80">kg/mes</div>
+                <div className="text-xs text-white/60 mt-2">
+                  {formatNumber(totalAnnual.co2)} kg/año
+                </div>
               </div>
-            </div>
-            
-            <div className="card text-center">
-              <div className="text-sm text-white/70 mb-2">Emisiones CO₂</div>
-              <div className="text-3xl font-bold text-success mb-1">
-                {formatNumber(total.co2)}
+            </section>
+
+            {/* Consumption Chart */}
+            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ConsumptionChart 
+                data={ranked.map(e => ({
+                  name: e.name,
+                  kwh: e.kwh,
+                  cost: e.cost
+                }))}
+                title="Top 5 Consumidores de Energía"
+              />
+              
+              <div className="card">
+                <h3 className="text-lg font-semibold mb-4">Análisis de Consumo</h3>
+                <div className="space-y-4">
+                  <div className="p-3 bg-white/5 rounded-lg">
+                    <div className="text-sm text-white/70 mb-1">Consumo diario promedio</div>
+                    <div className="text-xl font-semibold">{formatNumber(total.kwh / 30)} kWh</div>
+                  </div>
+                  
+                  <div className="p-3 bg-white/5 rounded-lg">
+                    <div className="text-sm text-white/70 mb-1">Mayor consumidor</div>
+                    {ranked.length > 0 && (
+                      <>
+                        <div className="text-lg font-semibold">{ranked[0].name}</div>
+                        <div className="text-xs text-white/60">
+                          {formatNumber(ranked[0].kwh)} kWh/mes ({((ranked[0].kwh / total.kwh) * 100).toFixed(1)}% del total)
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  
+                  <div className="p-3 bg-white/5 rounded-lg">
+                    <div className="text-sm text-white/70 mb-1">Potencial de ahorro</div>
+                    <div className="text-lg font-semibold text-success">
+                      {formatCurrencyCLP(total.cost * 0.2)}/mes
+                    </div>
+                    <div className="text-xs text-white/60">
+                      Implementando medidas de eficiencia energética
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 bg-white/5 rounded-lg">
+                    <div className="text-sm text-white/70 mb-1">Clasificación de consumo</div>
+                    <div className={`text-lg font-semibold ${
+                      total.kwh < 200 ? 'text-success' : 
+                      total.kwh < 400 ? 'text-warning' : 
+                      'text-danger'
+                    }`}>
+                      {total.kwh < 200 ? 'Eficiente' : 
+                       total.kwh < 400 ? 'Moderado' : 
+                       'Alto'}
+                    </div>
+                    <div className="text-xs text-white/60">
+                      Basado en promedio residencial
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="text-white/80">kg/mes</div>
-            </div>
-          </section>
+            </section>
+          </>
         )}
 
         {/* Additional info cards */}
@@ -776,6 +849,41 @@ export default function DashboardPage() {
             </>
           )}
         </section>
+
+        {/* Savings Calculator */}
+        {entries.length > 0 && (
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SavingsCalculator 
+              currentMonthlyKwh={total.kwh}
+              costPerKwh={costKwh}
+            />
+            
+            <div className="card">
+              <h3 className="text-lg font-semibold mb-4">Tips de Ahorro Rápido</h3>
+              <div className="space-y-3">
+                {[
+                  { title: 'Horario Valle', desc: 'Use electrodomésticos de alto consumo en horarios de menor tarifa', saving: '15%' },
+                  { title: 'Temperatura Óptima', desc: 'Configure el aire acondicionado en 24°C en verano', saving: '10%' },
+                  { title: 'Mantenimiento', desc: 'Limpie filtros de aire acondicionado mensualmente', saving: '5%' },
+                  { title: 'Aislamiento', desc: 'Selle puertas y ventanas para evitar fugas térmicas', saving: '20%' },
+                  { title: 'Electrodomésticos', desc: 'Prefiera modelos con certificación A++ o superior', saving: '30%' },
+                ].map((tip, index) => (
+                  <div key={index} className="p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm mb-1">{tip.title}</h4>
+                        <p className="text-xs text-white/70">{tip.desc}</p>
+                      </div>
+                      <span className="text-xs font-medium text-success ml-3">
+                        -{tip.saving}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Recommendations section */}
         <section className="card">
