@@ -35,15 +35,18 @@ export default function HomePage() {
       return
     }
 
-    try {
-      const profile = { rut: normalized, region }
-      localStorage.setItem('mec_profile', JSON.stringify(profile))
+    const profile = { rut: normalized, region }
+    localStorage.setItem('mec_profile', JSON.stringify(profile))
 
+    try {
       const fb = await getFirebase()
       if (fb) {
-        await upsertUserByRut(fb, normalized, region)
+        try {
+          await upsertUserByRut(fb, normalized, region)
+        } catch (syncErr) {
+          console.warn('No se pudo sincronizar con Firebase (se continuará en modo local):', syncErr)
+        }
       }
-
       router.push('/dashboard')
     } catch (e) {
       console.error(e)
@@ -93,7 +96,7 @@ export default function HomePage() {
           <li>Recibir recomendaciones personalizadas de ahorro</li>
           <li>Comparar eficiencia y retorno de inversión</li>
         </ul>
-        <p className="text-white/70 mt-3 text-sm">Tus cálculos se guardan en tu navegador y, si configuraste Firebase, tu cuenta por RUT se crea y tus escenarios se pueden sincronizar.</p>
+        <p className="text-white/70 mt-3 text-sm">Tus cálculos se guardan en tu navegador. Si hay Firebase configurado, tu cuenta por RUT se crea y tus escenarios se sincronizan.</p>
       </section>
     </main>
   )
