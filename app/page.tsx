@@ -95,8 +95,8 @@ export default function HomePage() {
           {/* Login Form */}
           <section className="card fade-in">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Ingresa con tu RUT</h2>
-              <p className="text-white/60">Crea tu perfil personalizado para comenzar</p>
+              <h2 className="text-2xl font-semibold mb-2">Acceso al Sistema</h2>
+              <p className="text-white/60">Ingrese su información para continuar</p>
             </div>
             
             <form onSubmit={onSubmit} className="space-y-6">
@@ -143,7 +143,7 @@ export default function HomePage() {
                   ))}
                 </select>
                 <p className="text-white/50 text-xs">
-                  Selecciona tu región para cálculos precisos de costos energéticos
+                  Seleccione su región para cálculos precisos de costos energéticos
                 </p>
               </div>
               
@@ -151,42 +151,33 @@ export default function HomePage() {
                 type="submit" 
                 className="btn w-full text-lg py-4" 
                 disabled={loading || !isFormValid}
-                aria-describedby="submit-help"
               >
                 {loading ? (
-                  <span className="flex items-center gap-3">
+                  <span className="flex items-center justify-center gap-3">
                     <span className="loading">⏳</span>
-                    Ingresando...
+                    Procesando...
                   </span>
                 ) : (
-                  <span className="flex items-center gap-3">
-                    <span>🚀</span>
-                    Comenzar análisis energético
-                  </span>
+                  'Ingresar al Sistema'
                 )}
               </button>
-              
-              <p id="submit-help" className="text-white/50 text-xs text-center">
-                Tus datos se guardan localmente en tu navegador
-              </p>
             </form>
           </section>
 
           {/* Features Section */}
           <section className="space-y-6">
             <div className="card fade-in">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                <span>✨</span>
-                ¿Qué puedes hacer aquí?
+              <h3 className="text-xl font-semibold mb-4">
+                Funcionalidades Principales
               </h3>
               <ul className="space-y-4">
                 {[
-                  { icon: '🔌', text: 'Calcular consumo y costo estimado de tus electrodomésticos' },
-                  { icon: '📊', text: 'Ver ranking de aparatos más costosos con sistema de semáforo' },
-                  { icon: '💡', text: 'Recibir recomendaciones personalizadas de ahorro energético' },
-                  { icon: '⚖️', text: 'Comparar eficiencia y calcular retorno de inversión' },
-                  { icon: '📈', text: 'Guardar y comparar diferentes escenarios de consumo' },
-                  { icon: '🌱', text: 'Monitorear tu huella de carbono por región' }
+                  { icon: '📊', text: 'Cálculo detallado de consumo y costos mensuales' },
+                  { icon: '⚡', text: 'Análisis de eficiencia energética por electrodoméstico' },
+                  { icon: '💰', text: 'Estimación de ahorro y retorno de inversión' },
+                  { icon: '📈', text: 'Comparación con promedios regionales' },
+                  { icon: '🌱', text: 'Medición de huella de carbono' },
+                  { icon: '📁', text: 'Gestión de múltiples escenarios de consumo' }
                 ].map((feature, index) => (
                   <li key={index} className="flex items-start gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                     <span className="text-xl flex-shrink-0">{feature.icon}</span>
@@ -197,34 +188,36 @@ export default function HomePage() {
             </div>
 
             <div className="card fade-in">
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <span>🔒</span>
-                Privacidad y datos
+              <h3 className="text-lg font-semibold mb-3">
+                Información del Sistema
               </h3>
               <div className="space-y-3 text-sm text-white/70">
                 <p className="flex items-start gap-2">
-                  <span className="text-success">✓</span>
-                  Tus cálculos se guardan localmente en tu navegador
+                  <span className="text-success">•</span>
+                  Datos actualizados de tarifas eléctricas 2024
                 </p>
                 <p className="flex items-start gap-2">
-                  <span className="text-success">✓</span>
-                  Si Firebase está configurado, tu perfil se sincroniza de forma segura
+                  <span className="text-success">•</span>
+                  Factores de emisión CO₂ por región
                 </p>
                 <p className="flex items-start gap-2">
-                  <span className="text-success">✓</span>
-                  No compartimos tus datos con terceros
+                  <span className="text-success">•</span>
+                  Base de datos con más de 50 electrodomésticos
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="text-success">•</span>
+                  Almacenamiento seguro de información
                 </p>
               </div>
             </div>
 
             <div className="card fade-in bg-gradient-to-r from-brand/10 to-success/10 border-brand/30">
-              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                <span>🇨🇱</span>
-                Optimizado para Chile
+              <h3 className="text-lg font-semibold mb-2">
+                Sistema Nacional de Eficiencia Energética
               </h3>
               <p className="text-white/80 text-sm">
-                Utiliza datos reales de costos energéticos y factores de emisión de CO₂ 
-                específicos para cada región de Chile, asegurando cálculos precisos y relevantes.
+                Plataforma oficial para el análisis y optimización del consumo energético residencial 
+                en Chile, con datos específicos por región.
               </p>
             </div>
           </section>

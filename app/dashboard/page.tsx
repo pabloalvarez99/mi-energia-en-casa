@@ -109,14 +109,14 @@ export default function DashboardPage() {
     return 'text-danger'
   }
 
-  const getSeverityIcon = (kwh: number) => {
-    if (kwh < 10) return '🟢'
-    if (kwh < 30) return '🟡'
-    return '🔴'
+  const getSeverityIndicator = (kwh: number) => {
+    if (kwh < 10) return 'Bajo'
+    if (kwh < 30) return 'Medio'
+    return 'Alto'
   }
 
   const onSaveScenario = async () => {
-    const name = prompt('Nombre del escenario (ej: Marzo 2025)')
+    const name = prompt('Ingrese un nombre para el escenario:')
     if (!name) return
     
     setSavingScenario(true)
@@ -138,10 +138,10 @@ export default function DashboardPage() {
         const updatedHistory = await listScenariosByRut(fb, profile.rut, 20)
         setHistory(updatedHistory)
       }
-      alert('✅ Escenario guardado exitosamente')
+      alert('Escenario guardado exitosamente')
     } catch (e) {
       console.warn('No se pudo sincronizar con Firebase:', e)
-      alert('⚠️ Escenario guardado localmente (sin sincronización)')
+      alert('Escenario guardado localmente')
     } finally {
       setSavingScenario(false)
     }
@@ -151,16 +151,16 @@ export default function DashboardPage() {
     if (!item) return
     setEntries(item.entries)
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    alert(`✅ Escenario "${item.name}" cargado`)
+    alert(`Escenario "${item.name}" cargado correctamente`)
   }
 
   const deleteScenario = async (id: string, name: string) => {
-    if (!confirm(`¿Eliminar el escenario "${name}"?`)) return
+    if (!confirm(`¿Está seguro de eliminar el escenario "${name}"?`)) return
     const fb = await getFirebase()
     if (fb && profile?.rut) {
       await deleteScenarioById(fb, profile.rut, id)
       setHistory(await listScenariosByRut(fb, profile.rut, 20))
-      alert('🗑️ Escenario eliminado')
+      alert('Escenario eliminado')
     }
   }
 
@@ -184,7 +184,7 @@ export default function DashboardPage() {
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="loading text-2xl">⏳ Cargando...</div>
+        <div className="loading text-2xl">Cargando...</div>
       </div>
     )
   }
@@ -197,10 +197,10 @@ export default function DashboardPage() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold gradient-text mb-2">
-                Dashboard Energético
+                Panel de Control Energético
               </h1>
               <p className="text-white/70">
-                Analiza y optimiza el consumo de tu hogar
+                Análisis y optimización del consumo residencial
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                 className="btn-secondary text-sm px-4 py-2" 
                 onClick={signOut}
               >
-                🚪 Cerrar sesión
+                Cerrar Sesión
               </button>
             </div>
           </div>
@@ -223,9 +223,8 @@ export default function DashboardPage() {
 
         {/* Add appliance form */}
         <section className="card">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span>➕</span>
-            Agregar electrodoméstico
+          <h2 className="text-xl font-semibold mb-4">
+            Agregar Electrodoméstico
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -289,7 +288,6 @@ export default function DashboardPage() {
                 onClick={addEntry}
                 disabled={!potencia || !horas || !count}
               >
-                <span>➕</span>
                 Agregar
               </button>
             </div>
@@ -299,24 +297,17 @@ export default function DashboardPage() {
         {/* Appliances list and ranking */}
         <section className="card">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold flex items-center gap-2">
-              <span>📊</span>
-              Lista y ranking ({entries.length} aparatos)
+            <h3 className="text-xl font-semibold">
+              Listado de Consumo ({entries.length} elementos)
             </h3>
             {entries.length > 0 && (
               <div className="flex gap-2 mt-2 sm:mt-0">
-                <button
-                  className="btn-secondary text-sm px-3 py-1 lg:hidden"
-                  onClick={() => setShowMobileTable(!showMobileTable)}
-                >
-                  {showMobileTable ? '📱 Vista móvil' : '📋 Vista tabla'}
-                </button>
                 <button 
                   className="btn text-sm px-4 py-2" 
                   onClick={onSaveScenario}
                   disabled={savingScenario}
                 >
-                  {savingScenario ? '💾 Guardando...' : '💾 Guardar escenario'}
+                  {savingScenario ? 'Guardando...' : 'Guardar Escenario'}
                 </button>
               </div>
             )}
@@ -324,9 +315,8 @@ export default function DashboardPage() {
           
           {entries.length === 0 ? (
             <div className="text-center py-12 text-white/70">
-              <div className="text-4xl mb-4">🏠</div>
-              <p className="text-lg mb-2">¡Comienza agregando tus electrodomésticos!</p>
-              <p className="text-sm">Selecciona un aparato arriba para comenzar tu análisis energético</p>
+              <p className="text-lg mb-2">No hay electrodomésticos registrados</p>
+              <p className="text-sm">Agregue electrodomésticos para comenzar el análisis</p>
             </div>
           ) : (
             <>
@@ -336,7 +326,7 @@ export default function DashboardPage() {
                   <thead>
                     <tr className="text-white/70">
                       <th className="text-left p-3">Aparato</th>
-                      <th className="text-center p-3">Estado</th>
+                      <th className="text-center p-3">Consumo</th>
                       <th className="text-right p-3">Potencia (W)</th>
                       <th className="text-right p-3">Horas/día</th>
                       <th className="text-right p-3">Cant.</th>
@@ -353,7 +343,9 @@ export default function DashboardPage() {
                         <tr key={e.index} className="border-t border-white/10 hover:bg-white/5">
                           <td className="p-3 font-medium">{e.name}</td>
                           <td className="p-3 text-center">
-                            <span className="text-lg">{getSeverityIcon(kwh)}</span>
+                            <span className={`text-xs font-medium ${severityColor(kwh)}`}>
+                              {getSeverityIndicator(kwh)}
+                            </span>
                           </td>
                           <td className="p-3 text-right">
                             <input 
@@ -390,7 +382,7 @@ export default function DashboardPage() {
                               className="text-danger hover:underline text-sm"
                               onClick={() => removeEntry(e.index)}
                             >
-                              🗑️
+                              Eliminar
                             </button>
                           </td>
                         </tr>
@@ -408,20 +400,20 @@ export default function DashboardPage() {
                   return (
                     <div key={e.index} className="card bg-white/3 border-white/5">
                       <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl">{getSeverityIcon(kwh)}</span>
-                          <div>
-                            <h4 className="font-medium">{e.name}</h4>
-                            <p className="text-xs text-white/60">
-                              {formatNumber(kwh)} kWh/mes · {formatCurrencyCLP(cost)}
-                            </p>
-                          </div>
+                        <div>
+                          <h4 className="font-medium">{e.name}</h4>
+                          <p className="text-xs text-white/60">
+                            {formatNumber(kwh)} kWh/mes · {formatCurrencyCLP(cost)}
+                          </p>
+                          <span className={`text-xs font-medium ${severityColor(kwh)}`}>
+                            Consumo: {getSeverityIndicator(kwh)}
+                          </span>
                         </div>
                         <button 
                           className="text-danger hover:underline text-sm"
                           onClick={() => removeEntry(e.index)}
                         >
-                          🗑️
+                          Eliminar
                         </button>
                       </div>
                       
@@ -466,7 +458,7 @@ export default function DashboardPage() {
         {entries.length > 0 && (
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="card text-center">
-              <div className="text-sm text-white/70 mb-2">Total mensual</div>
+              <div className="text-sm text-white/70 mb-2">Consumo Total Mensual</div>
               <div className="text-3xl font-bold gradient-text mb-1">
                 {formatNumber(total.kwh)}
               </div>
@@ -474,7 +466,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="card text-center">
-              <div className="text-sm text-white/70 mb-2">Costo mensual</div>
+              <div className="text-sm text-white/70 mb-2">Costo Mensual Estimado</div>
               <div className="text-3xl font-bold text-warning mb-1">
                 {formatCurrencyCLP(total.cost)}
               </div>
@@ -496,20 +488,18 @@ export default function DashboardPage() {
         {/* Additional info cards */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card">
-            <h4 className="font-semibold mb-2 flex items-center gap-2">
-              <span>📍</span>
-              Datos regionales
+            <h4 className="font-semibold mb-2">
+              Datos Regionales
             </h4>
             <div className="text-sm text-white/80">
-              <p>Costo: {formatCurrencyCLP(costKwh)}/kWh</p>
+              <p>Tarifa: {formatCurrencyCLP(costKwh)}/kWh</p>
               <p>Factor CO₂: {formatNumber(cf)} kg/kWh</p>
             </div>
           </div>
           
           <div className="card">
-            <h4 className="font-semibold mb-2 flex items-center gap-2">
-              <span>📊</span>
-              Promedio regional
+            <h4 className="font-semibold mb-2">
+              Promedio Regional
             </h4>
             <div className="text-sm text-white/80">
               {regionAvg ? (
@@ -526,22 +516,21 @@ export default function DashboardPage() {
           </div>
           
           <div className="card">
-            <h4 className="font-semibold mb-2 flex items-center gap-2">
-              <span>🎯</span>
-              Tu impacto
+            <h4 className="font-semibold mb-2">
+              Comparación
             </h4>
             <div className="text-sm text-white/80">
               {regionAvg && total.kwh > 0 ? (
                 <>
                   <p className={total.kwh > regionAvg.avgKwh ? 'text-warning' : 'text-success'}>
-                    {total.kwh > regionAvg.avgKwh ? '⬆️ Sobre' : '⬇️ Bajo'} promedio
+                    {total.kwh > regionAvg.avgKwh ? 'Sobre' : 'Bajo'} el promedio
                   </p>
                   <p className="text-xs text-white/60">
                     {Math.abs(((total.kwh - regionAvg.avgKwh) / regionAvg.avgKwh * 100)).toFixed(1)}% diferencia
                   </p>
                 </>
               ) : (
-                <p className="text-white/60">Agrega aparatos para ver</p>
+                <p className="text-white/60">Sin datos para comparar</p>
               )}
             </div>
           </div>
@@ -549,9 +538,8 @@ export default function DashboardPage() {
 
         {/* Comparator section */}
         <section className="card">
-          <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span>⚖️</span>
-            Comparador de eficiencia
+          <h3 className="text-xl font-semibold mb-4">
+            Comparador de Eficiencia Energética
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -609,33 +597,32 @@ export default function DashboardPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="card bg-white/3 border-white/5">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">🔴</span>
-                <h4 className="font-semibold">{compareDef(compareA).name}</h4>
+              <div className="mb-3">
+                <span className="text-xs text-danger font-medium">OPCIÓN A</span>
+                <h4 className="font-semibold mt-1">{compareDef(compareA).name}</h4>
               </div>
               <div className="space-y-2 text-sm text-white/80">
-                <p>⚡ Potencia: <span className="font-medium">{formatNumber(compareDef(compareA).watts)} W</span></p>
-                <p>📊 Consumo: <span className="font-medium">{formatNumber(compareMonthlyKwh(compareA, compareHours))} kWh/mes</span></p>
-                <p>💰 Costo: <span className="font-medium text-warning">{formatCurrencyCLP(calculateCostCLP(compareMonthlyKwh(compareA, compareHours), costKwh))}/mes</span></p>
+                <p>Potencia: <span className="font-medium">{formatNumber(compareDef(compareA).watts)} W</span></p>
+                <p>Consumo: <span className="font-medium">{formatNumber(compareMonthlyKwh(compareA, compareHours))} kWh/mes</span></p>
+                <p>Costo: <span className="font-medium text-warning">{formatCurrencyCLP(calculateCostCLP(compareMonthlyKwh(compareA, compareHours), costKwh))}/mes</span></p>
               </div>
             </div>
             
             <div className="card bg-white/3 border-white/5">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">🟢</span>
-                <h4 className="font-semibold">{compareDef(compareB).name}</h4>
+              <div className="mb-3">
+                <span className="text-xs text-success font-medium">OPCIÓN B</span>
+                <h4 className="font-semibold mt-1">{compareDef(compareB).name}</h4>
               </div>
               <div className="space-y-2 text-sm text-white/80">
-                <p>⚡ Potencia: <span className="font-medium">{formatNumber(compareDef(compareB).watts)} W</span></p>
-                <p>📊 Consumo: <span className="font-medium">{formatNumber(compareMonthlyKwh(compareB, compareHours))} kWh/mes</span></p>
-                <p>💰 Costo: <span className="font-medium text-success">{formatCurrencyCLP(calculateCostCLP(compareMonthlyKwh(compareB, compareHours), costKwh))}/mes</span></p>
+                <p>Potencia: <span className="font-medium">{formatNumber(compareDef(compareB).watts)} W</span></p>
+                <p>Consumo: <span className="font-medium">{formatNumber(compareMonthlyKwh(compareB, compareHours))} kWh/mes</span></p>
+                <p>Costo: <span className="font-medium text-success">{formatCurrencyCLP(calculateCostCLP(compareMonthlyKwh(compareB, compareHours), costKwh))}/mes</span></p>
               </div>
             </div>
             
             <div className="card bg-gradient-to-r from-brand/10 to-success/10 border-brand/30">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">💡</span>
-                <h4 className="font-semibold">Análisis de ROI</h4>
+              <div className="mb-3">
+                <h4 className="font-semibold">Análisis de Retorno de Inversión</h4>
               </div>
               <div className="space-y-2 text-sm">
                 <p className="text-white/80">
@@ -648,7 +635,7 @@ export default function DashboardPage() {
                 </p>
                 <div className="pt-2 border-t border-white/10">
                   <p className="font-medium">
-                    ⏱️ Recuperación: {
+                    Tiempo de recuperación: {
                       (() => {
                         const months = investmentRecoveryMonths(priceDelta, compareA, compareB, compareHours)
                         return Number.isFinite(months) ? (
@@ -669,21 +656,19 @@ export default function DashboardPage() {
 
         {/* History section */}
         <section className="card">
-          <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span>📁</span>
-            Historial de escenarios ({history.length})
+          <h3 className="text-xl font-semibold mb-4">
+            Historial de Escenarios ({history.length})
           </h3>
           
           {loadingHistory ? (
             <div className="text-center py-8">
-              <div className="loading text-lg mb-2">⏳</div>
+              <div className="loading text-lg mb-2">Cargando...</div>
               <p className="text-white/70 text-sm">Cargando historial...</p>
             </div>
           ) : history.length === 0 ? (
             <div className="text-center py-12 text-white/70">
-              <div className="text-4xl mb-4">📂</div>
-              <p className="text-lg mb-2">No tienes escenarios guardados</p>
-              <p className="text-sm">Guarda tu primer escenario para comenzar tu historial</p>
+              <p className="text-lg mb-2">No hay escenarios guardados</p>
+              <p className="text-sm">Guarde un escenario para comenzar el historial</p>
             </div>
           ) : (
             <>
@@ -731,14 +716,14 @@ export default function DashboardPage() {
                               onClick={() => loadScenario(h)}
                               title="Cargar escenario"
                             >
-                              📂 Cargar
+                              Cargar
                             </button>
                             <button 
                               className="text-danger hover:underline text-xs" 
                               onClick={() => deleteScenario(h.id!, h.name)}
                               title="Eliminar escenario"
                             >
-                              🗑️
+                              Eliminar
                             </button>
                           </div>
                         </td>
