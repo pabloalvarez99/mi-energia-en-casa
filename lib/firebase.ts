@@ -1,5 +1,5 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app'
-import { getFirestore, collection, addDoc } from 'firebase/firestore'
+import { getFirestore, collection, addDoc, doc, setDoc, getDoc } from 'firebase/firestore'
 
 export type FirebaseCtx = { app: FirebaseApp }
 
@@ -26,4 +26,26 @@ export async function maybeSaveScenario(ctx: FirebaseCtx, rut: string, scenario:
   const db = getFirestore(ctx.app)
   const ref = collection(db, 'ruts', rut, 'scenarios')
   await addDoc(ref, scenario)
+}
+
+export type UserProfile = {
+  rut: string
+  region: string
+  createdAt: string
+  updatedAt: string
+}
+
+export async function upsertUserByRut(ctx: FirebaseCtx, rut: string, region: string): Promise<UserProfile> {
+  const db = getFirestore(ctx.app)
+  const ref = doc(db, 'users', rut)
+  const now = new Date().toISOString()
+  const snap = await getDoc(ref)
+  const data: UserProfile = {
+    rut,
+    region,
+    createdAt: snap.exists() ? (snap.data() as any).createdAt ?? now : now,
+    updatedAt: now,
+  }
+  await setDoc(ref, data, { merge: true })
+  return data
 } 

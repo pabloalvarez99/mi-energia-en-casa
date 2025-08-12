@@ -4,12 +4,14 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { validateRut, normalizeRut, formatRut } from '@/lib/rut'
 import { REGIONS } from '@/lib/constants'
+import { getFirebase, upsertUserByRut } from '@/lib/firebase'
 
 export default function HomePage() {
   const router = useRouter()
   const [rut, setRut] = useState('')
   const [region, setRegion] = useState('RM')
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('mec_profile') : null
@@ -22,23 +24,39 @@ export default function HomePage() {
     }
   }, [])
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setLoading(true)
     const normalized = normalizeRut(rut)
     if (!validateRut(normalized)) {
       setError('RUT inválido. Ejemplo: 12.345.678-5')
+      setLoading(false)
       return
     }
-    const profile = { rut: normalized, region }
-    localStorage.setItem('mec_profile', JSON.stringify(profile))
-    router.push('/dashboard')
+
+    try {
+      const profile = { rut: normalized, region }
+      localStorage.setItem('mec_profile', JSON.stringify(profile))
+
+      const fb = await getFirebase()
+      if (fb) {
+        await upsertUserByRut(fb, normalized, region)
+      }
+
+      router.push('/dashboard')
+    } catch (e) {
+      console.error(e)
+      setError('No se pudo crear/iniciar sesión. Intenta de nuevo.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <main className="grid md:grid-cols-2 gap-6 items-start">
       <section className="card">
-        <h2 className="text-xl font-semibold mb-4">Ingresa con tu RUT y región</h2>
+        <h2 className="text-xl font-semibold mb-4">Ingresa o crea tu cuenta con RUT</h2>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-sm mb-1">RUT</label>
@@ -48,6 +66,7 @@ export default function HomePage() {
               value={rut}
               onChange={(e) => setRut(e.target.value)}
               inputMode="text"
+              required
             />
           </div>
           <div>
@@ -63,7 +82,7 @@ export default function HomePage() {
             </select>
           </div>
           {error && <p className="text-danger text-sm">{error}</p>}
-          <button type="submit" className="btn w-full">Entrar</button>
+          <button type="submit" className="btn w-full" disabled={loading}>{loading ? 'Ingresando…' : 'Entrar'}</button>
         </form>
       </section>
       <section className="card">
@@ -74,7 +93,7 @@ export default function HomePage() {
           <li>Recibir recomendaciones personalizadas de ahorro</li>
           <li>Comparar eficiencia y retorno de inversión</li>
         </ul>
-        <p className="text-white/70 mt-3 text-sm">Tus datos se guardan localmente. Si configuras Firebase, también se pueden sincronizar.</p>
+        <p className="text-white/70 mt-3 text-sm">Tus cálculos se guardan en tu navegador y, si configuraste Firebase, tu cuenta por RUT se crea y tus escenarios se pueden sincronizar.</p>
       </section>
     </main>
   )

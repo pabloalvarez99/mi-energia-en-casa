@@ -111,6 +111,11 @@ export default function DashboardPage() {
     return priceDeltaCLP / monthlySavingCLP
   }
 
+  const signOut = () => {
+    localStorage.removeItem('mec_profile')
+    router.replace('/')
+  }
+
   if (!profile) return null
 
   return (
@@ -143,9 +148,10 @@ export default function DashboardPage() {
           </div>
           <button className="btn" onClick={addEntry}>Agregar</button>
           <div className="ml-auto text-right">
-            <div className="text-sm text-white/70">Región</div>
-            <div className="font-medium">{REGIONS[regionCode].name}</div>
-            <div className="text-xs text-white/60">Costo: {formatCurrencyCLP(costKwh)} / kWh · CO₂: {formatNumber(cf)} kg/kWh</div>
+            <div className="text-xs text-white/60">Sesión</div>
+            <div className="font-medium text-sm">{profile.rut}</div>
+            <div className="text-xs text-white/60">Región: {REGIONS[regionCode].name}</div>
+            <button className="text-sm text-white/70 hover:text-white underline mt-1" onClick={signOut}>Cerrar sesión</button>
           </div>
         </div>
       </section>

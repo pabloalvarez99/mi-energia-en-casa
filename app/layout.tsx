@@ -17,10 +17,9 @@ export default function RootLayout({
         <div className="container py-8">
           <header className="flex items-center justify-between mb-8">
             <h1 className="text-2xl md:text-3xl font-semibold">Mi Energía en Casa</h1>
-            <a className="text-sm text-white/70 hover:text-white" href="https://vercel.com" target="_blank" rel="noreferrer">Deploy en Vercel</a>
           </header>
           {children}
-          <footer className="mt-12 text-center text-white/60 text-sm">Hecho con Next.js y Firebase</footer>
+          <footer className="mt-12 text-center text-white/60 text-sm">© {new Date().getFullYear()} Mi Energía en Casa</footer>
         </div>
       </body>
     </html>
