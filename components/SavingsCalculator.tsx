@@ -18,11 +18,11 @@ export default function SavingsCalculator({ currentMonthlyKwh, costPerKwh }: Sav
   }
   
   const savingsTips = [
-    { percentage: 10, measure: 'Cambiar a iluminación LED', investment: 50000 },
-    { percentage: 15, measure: 'Desconectar aparatos en standby', investment: 20000 },
+    { percentage: 10, measure: 'Cambiar a iluminación LED', investment: 150000 },
+    { percentage: 15, measure: 'Desconectar aparatos en standby', investment: 50000 },
     { percentage: 20, measure: 'Optimizar uso de climatización', investment: 0 },
-    { percentage: 25, measure: 'Actualizar electrodomésticos antiguos', investment: 500000 },
-    { percentage: 30, measure: 'Instalar paneles solares', investment: 3000000 },
+    { percentage: 25, measure: 'Actualizar electrodomésticos antiguos', investment: 1500000 },
+    { percentage: 30, measure: 'Instalar paneles solares', investment: 8000000 },
   ]
   
   const currentTip = savingsTips.find(tip => tip.percentage >= savingsPercentage) || savingsTips[savingsTips.length - 1]

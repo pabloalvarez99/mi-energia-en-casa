@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const [compareA, setCompareA] = useState<string>('incandescent_bulb')
   const [compareB, setCompareB] = useState<string>('led_bulb')
   const [compareHours, setCompareHours] = useState<number>(4)
-  const [priceDelta, setPriceDelta] = useState<number>(20000)
+  const [priceDelta, setPriceDelta] = useState<number>(150000)
   const [history, setHistory] = useState<any[]>([])
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false)
   const [regionAvg, setRegionAvg] = useState<{ avgKwh: number; count: number } | null>(null)
