@@ -779,79 +779,66 @@ export default function DashboardPage() {
 
         {/* Recommendations section */}
         <section className="card">
-          <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span>💡</span>
-            Recomendaciones de ahorro energético
+          <h3 className="text-xl font-semibold mb-4">
+            Recomendaciones de Ahorro Energético
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
               {
-                icon: '💡',
-                title: 'Iluminación eficiente',
-                tip: 'Reemplaza ampolletas incandescentes por LED',
-                saving: 'Ahorro: hasta 80% en iluminación',
+                title: 'Iluminación Eficiente',
+                tip: 'Reemplace ampolletas incandescentes por LED',
+                saving: 'Ahorro estimado: hasta 80% en iluminación',
                 color: 'text-success'
               },
               {
-                icon: '🔌',
-                title: 'Evita standby',
-                tip: 'Desconecta aparatos o usa regletas con interruptor',
-                saving: 'Ahorro: 5-10% del consumo total',
+                title: 'Modo Standby',
+                tip: 'Desconecte aparatos o use regletas con interruptor',
+                saving: 'Ahorro estimado: 5-10% del consumo total',
                 color: 'text-warning'
               },
               {
-                icon: '❄️',
-                title: 'Refrigerador eficiente',
-                tip: 'Ajusta termostato: refrigerador 4°C, freezer -18°C',
-                saving: 'Ahorro: hasta 15% en refrigeración',
+                title: 'Refrigeración Óptima',
+                tip: 'Ajuste termostato: refrigerador 4°C, freezer -18°C',
+                saving: 'Ahorro estimado: hasta 15% en refrigeración',
                 color: 'text-brand'
               },
               {
-                icon: '🔥',
-                title: 'Hervidor inteligente',
-                tip: 'Hierve solo el agua necesaria y usa hervidor eficiente',
-                saving: 'Ahorro: 30-50% en calentamiento de agua',
+                title: 'Uso Eficiente del Agua Caliente',
+                tip: 'Hierva solo el agua necesaria y use hervidor eficiente',
+                saving: 'Ahorro estimado: 30-50% en calentamiento',
                 color: 'text-success'
               },
               {
-                icon: '⏰',
-                title: 'Programación horaria',
-                tip: 'Usa temporizadores para optimizar horas de uso',
-                saving: 'Ahorro: variable según tarifa',
+                title: 'Programación Horaria',
+                tip: 'Use temporizadores para optimizar horas de uso',
+                saving: 'Ahorro variable según tarifa horaria',
                 color: 'text-warning'
               },
               {
-                icon: '🏠',
-                title: 'Aislamiento térmico',
-                tip: 'Mejora ventanas y puertas para reducir calefacción',
-                saving: 'Ahorro: hasta 30% en climatización',
+                title: 'Aislamiento Térmico',
+                tip: 'Mejore ventanas y puertas para reducir pérdidas',
+                saving: 'Ahorro estimado: hasta 30% en climatización',
                 color: 'text-brand'
               }
             ].map((rec, index) => (
               <div key={index} className="card bg-white/3 border-white/5 hover:bg-white/5 transition-colors">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl flex-shrink-0">{rec.icon}</span>
-                  <div className="flex-1">
-                    <h4 className="font-semibold mb-1">{rec.title}</h4>
-                    <p className="text-sm text-white/80 mb-2">{rec.tip}</p>
-                    <p className={`text-xs font-medium ${rec.color}`}>
-                      💰 {rec.saving}
-                    </p>
-                  </div>
+                <div>
+                  <h4 className="font-semibold mb-2">{rec.title}</h4>
+                  <p className="text-sm text-white/80 mb-3">{rec.tip}</p>
+                  <p className={`text-xs font-medium ${rec.color}`}>
+                    {rec.saving}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
           
           <div className="mt-6 p-4 rounded-lg bg-gradient-to-r from-success/10 to-brand/10 border border-success/20">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">🌱</span>
-              <h4 className="font-semibold text-success">Tip ecológico</h4>
-            </div>
+            <h4 className="font-semibold text-success mb-2">Impacto Ambiental</h4>
             <p className="text-sm text-white/90">
-              Cada kWh que ahorres evita aproximadamente <span className="font-medium">{formatNumber(cf)} kg de CO₂</span> en tu región. 
-              ¡Pequeños cambios hacen una gran diferencia para el planeta!
+              Cada kWh ahorrado evita aproximadamente <span className="font-medium">{formatNumber(cf)} kg de CO₂</span> en su región. 
+              Los pequeños cambios contribuyen significativamente a la reducción de emisiones.
             </p>
           </div>
         </section>
