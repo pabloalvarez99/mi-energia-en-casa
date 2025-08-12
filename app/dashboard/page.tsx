@@ -749,13 +749,13 @@ export default function DashboardPage() {
                           className="btn-secondary text-xs px-2 py-1" 
                           onClick={() => loadScenario(h)}
                         >
-                          📂
+                          Cargar
                         </button>
                         <button 
                           className="text-danger hover:underline text-xs" 
                           onClick={() => deleteScenario(h.id!, h.name)}
                         >
-                          🗑️
+                          Eliminar
                         </button>
                       </div>
                     </div>
