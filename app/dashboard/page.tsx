@@ -221,6 +221,56 @@ export default function DashboardPage() {
     router.replace('/')
   }
 
+  // Utilidades de exportación y compartir
+  const downloadFile = (filename: string, content: string, mime: string) => {
+    const blob = new Blob([content], { type: mime })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportJSON = () => {
+    const data = {
+      region: regionCode,
+      regionName: REGIONS[regionCode].name,
+      costPerKwh: costKwh,
+      co2FactorKgPerKwh: cf,
+      entries,
+      totals: total,
+      generatedAt: new Date().toISOString(),
+    }
+    downloadFile(`escenario-${regionCode}.json`, JSON.stringify(data, null, 2), 'application/json')
+  }
+
+  const exportCSV = () => {
+    const header = 'Nombre,Potencia_W,Horas_dia,Cantidad,kWh_mes,Costo_CLP_mes,CO2_kg_mes'
+    const rows = entries.map((e) => {
+      const kwh = calculateMonthlyKwh(e.watts, e.hoursPerDay, e.quantity)
+      const cost = calculateCostCLP(kwh, costKwh)
+      const co2 = calculateEmissionsKg(kwh, cf)
+      const clean = (e.name || '').replace(/,/g, ' ')
+      return `${clean},${e.watts},${e.hoursPerDay},${e.quantity},${kwh.toFixed(2)},${Math.round(cost)},${co2.toFixed(2)}`
+    })
+    const totalRow = ['TOTAL','','','', total.kwh.toFixed(2), Math.round(total.cost), total.co2.toFixed(2)].join(',')
+    const csv = [header, ...rows, totalRow].join('\n')
+    downloadFile(`escenario-${regionCode}.csv`, csv, 'text/csv;charset=utf-8;')
+  }
+
+  const copySummary = async () => {
+    const summary = `Región: ${REGIONS[regionCode].name}\nAparatos: ${entries.length}\nConsumo mensual: ${formatNumber(total.kwh)} kWh\nCosto mensual: ${formatCurrencyCLP(total.cost)}\nCO2 mensual: ${formatNumber(total.co2)} kg`
+    try {
+      await navigator.clipboard.writeText(summary)
+      alert('Resumen copiado')
+    } catch {
+      alert('No se pudo copiar el resumen')
+    }
+  }
+
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -251,12 +301,23 @@ export default function DashboardPage() {
                   {REGIONS[regionCode].name}
                 </div>
               </div>
-              <button 
-                className="btn-secondary text-sm px-4 py-2" 
-                onClick={signOut}
-              >
-                Cerrar Sesión
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button className="btn-secondary text-sm px-4 py-2" onClick={copySummary}>
+                  Copiar resumen
+                </button>
+                <button className="btn-secondary text-sm px-4 py-2" onClick={exportCSV}>
+                  Exportar CSV
+                </button>
+                <button className="btn-secondary text-sm px-4 py-2" onClick={exportJSON}>
+                  Exportar JSON
+                </button>
+                <button 
+                  className="btn-secondary text-sm px-4 py-2" 
+                  onClick={signOut}
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
             </div>
           </div>
         </section>
