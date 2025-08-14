@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { APPLIANCES, REGIONS, carbonFactorKgPerKwhByRegion, electricityCostCLPPerKwhByRegion } from '@/lib/constants'
+import { COMMON_APPLIANCES, REGIONS, CO2_FACTOR, ELECTRICITY_RATES } from '@/lib/constants'
 import { calculateMonthlyKwh, calculateCostCLP, calculateEmissionsKg } from '@/lib/calculations'
 import type { ApplianceDefinition, ApplianceEntry, ScenarioDoc } from '@/lib/types'
 import { formatCurrencyCLP, formatNumber } from '@/lib/format'
@@ -15,14 +15,16 @@ export default function DashboardPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<{ rut: string; region: keyof typeof REGIONS } | null>(null)
   const [entries, setEntries] = useState<ApplianceEntry[]>([])
-  const [selectedKey, setSelectedKey] = useState<string>('refrigerator')
-  const [potencia, setPotencia] = useState<number>(APPLIANCES['refrigerator'].watts)
+  const [selectedKey, setSelectedKey] = useState<string>('0') // Index del array
+  const [potencia, setPotencia] = useState<number>(COMMON_APPLIANCES[0].watts)
   const [horas, setHoras] = useState<number>(8)
   const [count, setCount] = useState<number>(1)
-  const [compareA, setCompareA] = useState<string>('incandescent_bulb')
-  const [compareB, setCompareB] = useState<string>('led_bulb')
+
+  // Estados para los comparadores
+  const [compareA, setCompareA] = useState<string>('0')
+  const [compareB, setCompareB] = useState<string>('1')
   const [compareHours, setCompareHours] = useState<number>(4)
-  const [priceDelta, setPriceDelta] = useState<number>(150000)
+  const [priceDelta, setPriceDelta] = useState<number>(50000)
   const [history, setHistory] = useState<ScenarioDoc[]>([])
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false)
   const [regionAvg, setRegionAvg] = useState<{ avgKwh: number; count: number } | null>(null)
@@ -84,8 +86,8 @@ export default function DashboardPage() {
   }, [profile])
 
   const regionCode = profile?.region ?? 'RM'
-  const costKwh = electricityCostCLPPerKwhByRegion[regionCode]
-  const cf = carbonFactorKgPerKwhByRegion[regionCode]
+  const costKwh = ELECTRICITY_RATES[regionCode as keyof typeof ELECTRICITY_RATES]
+  const cf = CO2_FACTOR
 
   const total = useMemo(() => {
     const kwh = entries.reduce((sum, e) => sum + calculateMonthlyKwh(e.watts, e.hoursPerDay, e.quantity), 0)
@@ -109,15 +111,16 @@ export default function DashboardPage() {
   }, [entries, costKwh])
 
   const addEntry = () => {
-    const def = APPLIANCES[selectedKey]
+    const selectedIndex = parseInt(selectedKey)
+    const def = COMMON_APPLIANCES[selectedIndex]
     const entry: ApplianceEntry = {
       key: selectedKey,
       name: def.name,
       watts: potencia,
       hoursPerDay: horas,
-      quantity: count,
+      quantity: count
     }
-    setEntries((prev) => [...prev, entry])
+    setEntries([...entries, entry])
   }
 
   const updateEntry = (index: number, patch: Partial<ApplianceEntry>) => {
@@ -193,16 +196,25 @@ export default function DashboardPage() {
     }
   }
 
-  const compareDef = (key: string): ApplianceDefinition => APPLIANCES[key]
+  const compareDef = (key: string): ApplianceDefinition => {
+    const index = parseInt(key)
+    return COMMON_APPLIANCES[index]
+  }
 
-  const compareMonthlyKwh = (key: string, hours = 4) => calculateMonthlyKwh(APPLIANCES[key].watts, hours, 1)
+  const compareMonthlyKwh = (key: string, hours = 4) => {
+    const index = parseInt(key)
+    return calculateMonthlyKwh(COMMON_APPLIANCES[index].watts, hours, 1)
+  }
 
   const investmentRecoveryMonths = (priceDeltaCLP: number, keyA: string, keyB: string, hours = 4) => {
-    const kwhA = compareMonthlyKwh(keyA, hours)
-    const kwhB = compareMonthlyKwh(keyB, hours)
-    const monthlySavingCLP = calculateCostCLP(kwhA - kwhB, costKwh)
-    if (monthlySavingCLP <= 0) return Infinity
-    return priceDeltaCLP / monthlySavingCLP
+    const indexA = parseInt(keyA)
+    const indexB = parseInt(keyB)
+    const kwhA = calculateMonthlyKwh(COMMON_APPLIANCES[indexA].watts, hours, 1)
+    const kwhB = calculateMonthlyKwh(COMMON_APPLIANCES[indexB].watts, hours, 1)
+    const diffKwh = Math.abs(kwhA - kwhB)
+    const diffCost = calculateCostCLP(diffKwh, costKwh)
+    if (diffCost <= 0) return Infinity
+    return priceDeltaCLP / diffCost
   }
 
   const signOut = () => {
@@ -265,11 +277,11 @@ export default function DashboardPage() {
                 onChange={(e) => {
                   const k = e.target.value
                   setSelectedKey(k)
-                  setPotencia(APPLIANCES[k].watts)
+                  setPotencia(COMMON_APPLIANCES[parseInt(k)].watts)
                 }}
               >
-                {Object.entries(APPLIANCES).map(([key, a]) => (
-                  <option key={key} value={key}>{a.name}</option>
+                {COMMON_APPLIANCES.map((a, index) => (
+                  <option key={index} value={index}>{a.name}</option>
                 ))}
               </select>
             </div>
@@ -529,106 +541,186 @@ export default function DashboardPage() {
         </section>
 
         {/* Summary cards and Chart */}
-        {entries.length > 0 && (
-          <>
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="card text-center">
-                <div className="text-sm text-white/70 mb-2">Consumo Total Mensual</div>
-                <div className="text-3xl font-bold gradient-text mb-1">
-                  {formatNumber(total.kwh)}
+        <section className="card">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-white">Mi Consumo Energético</h2>
+              <p className="text-white/60 text-sm">Análisis personalizado para Chile</p>
+            </div>
+            {profile && CLIMATE_DATA[profile.region as keyof typeof CLIMATE_DATA] && (
+              <div className="text-right">
+                <div className="text-sm text-green-400 bg-green-900/20 px-3 py-1 rounded-full">
+                  Zona {CLIMATE_DATA[profile.region as keyof typeof CLIMATE_DATA].zone}
                 </div>
-                <div className="text-white/80">kWh</div>
-                <div className="text-xs text-white/60 mt-2">
-                  Equivale a {Math.round(total.kwh / 30)} kWh/día
-                </div>
-              </div>
-              
-              <div className="card text-center">
-                <div className="text-sm text-white/70 mb-2">Costo Mensual Estimado</div>
-                <div className="text-3xl font-bold text-warning mb-1">
-                  {formatCurrencyCLP(total.cost)}
-                </div>
-                <div className="text-white/80 text-sm">
-                  Anual: {formatCurrencyCLP(totalAnnual.cost)}
-                </div>
-                <div className="text-xs text-white/60 mt-2">
-                  {formatCurrencyCLP(total.cost / 30)}/día
+                <div className="text-xs text-white/40 mt-1">
+                  {CLIMATE_DATA[profile.region as keyof typeof CLIMATE_DATA].heatingMonths} meses de calefacción
                 </div>
               </div>
-              
-              <div className="card text-center">
-                <div className="text-sm text-white/70 mb-2">Emisiones CO₂</div>
-                <div className="text-3xl font-bold text-success mb-1">
-                  {formatNumber(total.co2)}
-                </div>
-                <div className="text-white/80">kg/mes</div>
-                <div className="text-xs text-white/60 mt-2">
-                  {formatNumber(totalAnnual.co2)} kg/año
-                </div>
-              </div>
-            </section>
+            )}
+          </div>
 
-            {/* Consumption Chart */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ConsumptionChart 
-                data={ranked.map(e => ({
-                  name: e.name,
-                  kwh: e.kwh,
-                  cost: e.cost
-                }))}
-                title="Top 5 Consumidores de Energía"
-              />
-              
-              <div className="card">
-                <h3 className="text-lg font-semibold mb-4">Análisis de Consumo</h3>
-                <div className="space-y-4">
-                  <div className="p-3 bg-white/5 rounded-lg">
-                    <div className="text-sm text-white/70 mb-1">Consumo diario promedio</div>
-                    <div className="text-xl font-semibold">{formatNumber(total.kwh / 30)} kWh</div>
-                  </div>
-                  
-                  <div className="p-3 bg-white/5 rounded-lg">
-                    <div className="text-sm text-white/70 mb-1">Mayor consumidor</div>
-                    {ranked.length > 0 && (
-                      <>
-                        <div className="text-lg font-semibold">{ranked[0].name}</div>
-                        <div className="text-xs text-white/60">
-                          {formatNumber(ranked[0].kwh)} kWh/mes ({((ranked[0].kwh / total.kwh) * 100).toFixed(1)}% del total)
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  
-                  <div className="p-3 bg-white/5 rounded-lg">
-                    <div className="text-sm text-white/70 mb-1">Potencial de ahorro</div>
-                    <div className="text-lg font-semibold text-success">
-                      {formatCurrencyCLP(total.cost * 0.2)}/mes
-                    </div>
-                    <div className="text-xs text-white/60">
-                      Implementando medidas de eficiencia energética
-                    </div>
-                  </div>
-                  
-                  <div className="p-3 bg-white/5 rounded-lg">
-                    <div className="text-sm text-white/70 mb-1">Clasificación de consumo</div>
-                    <div className={`text-lg font-semibold ${
-                      total.kwh < 200 ? 'text-success' : 
-                      total.kwh < 400 ? 'text-warning' : 
-                      'text-danger'
-                    }`}>
-                      {total.kwh < 200 ? 'Eficiente' : 
-                       total.kwh < 400 ? 'Moderado' : 
-                       'Alto'}
-                    </div>
-                    <div className="text-xs text-white/60">
-                      Basado en promedio residencial
-                    </div>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-400 mb-1">{formatNumber(total.kwh)}</div>
+                <div className="text-sm text-white/60 mb-2">kWh/mes</div>
+                <div className="text-xs text-white/40">
+                  Promedio Chile: 180 kWh/mes
+                </div>
+                <div className={`text-xs mt-1 ${total.kwh > 180 ? 'text-red-400' : 'text-green-400'}`}>
+                  {total.kwh > 180 ? 
+                    `+${Math.round(((total.kwh / 180) - 1) * 100)}% sobre promedio` : 
+                    `-${Math.round((1 - (total.kwh / 180)) * 100)}% bajo promedio`
+                  }
                 </div>
               </div>
-            </section>
-          </>
-        )}
+            </div>
+            
+            <div className="bg-green-900/20 rounded-lg p-4 border border-green-500/20">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400 mb-1">{formatCurrencyCLP(total.cost)}</div>
+                <div className="text-sm text-white/60 mb-2">CLP/mes</div>
+                {profile && (
+                  <>
+                    <div className="text-xs text-white/40">
+                      Tarifa: ${ELECTRICITY_RATES[profile.region as keyof typeof ELECTRICITY_RATES]} CLP/kWh
+                    </div>
+                    <div className="text-xs text-blue-400 mt-1">
+                      Región {profile.region}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            <div className="bg-orange-900/20 rounded-lg p-4 border border-orange-500/20">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-orange-400 mb-1">{formatNumber(total.co2)}</div>
+                <div className="text-sm text-white/60 mb-2">kg CO₂/mes</div>
+                <div className="text-xs text-white/40">
+                  Factor SEN: 0.31 kg/kWh
+                </div>
+                <div className="text-xs text-green-400 mt-1">
+                  Equivale a {Math.round(total.co2 / 21)} días de respiración
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Barra de comparación con consumo promedio chileno */}
+          <div className="bg-gray-700/50 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-white/70">Comparación con promedio nacional</span>
+              <span className="text-sm text-blue-400">{Math.round((total.kwh / 180) * 100)}%</span>
+            </div>
+            <div className="bg-gray-600 rounded-full h-3 overflow-hidden">
+              <div className="flex h-full">
+                <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${Math.min((total.kwh / 180) * 100, 100)}%` }}></div>
+                {total.kwh > 180 && (
+                  <div className="bg-red-500 h-full transition-all duration-500" style={{ width: `${Math.min(((total.kwh - 180) / 180) * 100, 100)}%` }}></div>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-between text-xs text-white/40 mt-2">
+              <span>0 kWh</span>
+              <span>180 kWh (promedio)</span>
+              <span>{total.kwh > 360 ? `${Math.round(total.kwh)} kWh` : '360+ kWh'}</span>
+            </div>
+          </div>
+
+          {/* Proyección anual */}
+          {profile && CLIMATE_DATA[profile.region as keyof typeof CLIMATE_DATA] && (
+            <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
+              <h4 className="text-white font-medium mb-3">Proyección Anual Estimada</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-xl font-bold text-purple-400">
+                    {formatNumber(total.kwh * 12)}
+                  </div>
+                  <div className="text-xs text-white/60">kWh/año</div>
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-green-400">
+                    {formatCurrencyCLP(total.cost * 12)}
+                  </div>
+                  <div className="text-xs text-white/60">CLP/año</div>
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-orange-400">
+                    {formatNumber(total.co2 * 12)}
+                  </div>
+                  <div className="text-xs text-white/60">kg CO₂/año</div>
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-blue-400">
+                    {Math.round(total.co2 * 12 / 11.5)}
+                  </div>
+                  <div className="text-xs text-white/60">árboles necesarios</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Consumption Chart */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ConsumptionChart 
+            data={ranked.map(e => ({
+              name: e.name,
+              kwh: e.kwh,
+              cost: e.cost
+            }))}
+            title="Top 5 Consumidores de Energía"
+          />
+          
+          <div className="card">
+            <h3 className="text-lg font-semibold mb-4">Análisis de Consumo</h3>
+            <div className="space-y-4">
+              <div className="p-3 bg-white/5 rounded-lg">
+                <div className="text-sm text-white/70 mb-1">Consumo diario promedio</div>
+                <div className="text-xl font-semibold">{formatNumber(total.kwh / 30)} kWh</div>
+              </div>
+              
+              <div className="p-3 bg-white/5 rounded-lg">
+                <div className="text-sm text-white/70 mb-1">Mayor consumidor</div>
+                {ranked.length > 0 && (
+                  <>
+                    <div className="text-lg font-semibold">{ranked[0].name}</div>
+                    <div className="text-xs text-white/60">
+                      {formatNumber(ranked[0].kwh)} kWh/mes ({((ranked[0].kwh / total.kwh) * 100).toFixed(1)}% del total)
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              <div className="p-3 bg-white/5 rounded-lg">
+                <div className="text-sm text-white/70 mb-1">Potencial de ahorro</div>
+                <div className="text-lg font-semibold text-success">
+                  {formatCurrencyCLP(total.cost * 0.2)}/mes
+                </div>
+                <div className="text-xs text-white/60">
+                  Implementando medidas de eficiencia energética
+                </div>
+              </div>
+              
+              <div className="p-3 bg-white/5 rounded-lg">
+                <div className="text-sm text-white/70 mb-1">Clasificación de consumo</div>
+                <div className={`text-lg font-semibold ${
+                  total.kwh < 200 ? 'text-success' : 
+                  total.kwh < 400 ? 'text-warning' : 
+                  'text-danger'
+                }`}>
+                  {total.kwh < 200 ? 'Eficiente' : 
+                   total.kwh < 400 ? 'Moderado' : 
+                   'Alto'}
+                </div>
+                <div className="text-xs text-white/60">
+                  Basado en promedio residencial
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Additional info cards */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -695,8 +787,8 @@ export default function DashboardPage() {
                 value={compareA} 
                 onChange={(e) => setCompareA(e.target.value)}
               >
-                {Object.entries(APPLIANCES).map(([key, a]) => (
-                  <option key={key} value={key}>{a.name}</option>
+                {COMMON_APPLIANCES.map((a, index) => (
+                  <option key={index} value={index}>{a.name}</option>
                 ))}
               </select>
             </div>
@@ -708,8 +800,8 @@ export default function DashboardPage() {
                 value={compareB} 
                 onChange={(e) => setCompareB(e.target.value)}
               >
-                {Object.entries(APPLIANCES).map(([key, a]) => (
-                  <option key={key} value={key}>{a.name}</option>
+                {COMMON_APPLIANCES.map((a, index) => (
+                  <option key={index} value={index}>{a.name}</option>
                 ))}
               </select>
             </div>
