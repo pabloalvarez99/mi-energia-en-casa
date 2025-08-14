@@ -10,6 +10,7 @@ export const REGIONS = {
   'RM': { name: 'Metropolitana' },
   'VI': { name: 'O\'Higgins' },
   'VII': { name: 'Maule' },
+  'XVI': { name: 'Ñuble' },
   'VIII': { name: 'Biobío' },
   'IX': { name: 'La Araucanía' },
   'XIV': { name: 'Los Ríos' },
@@ -18,115 +19,150 @@ export const REGIONS = {
   'XII': { name: 'Magallanes' },
 } as const
 
-// Estimaciones actualizadas basadas en tarifas 2024
+// Tarifas eléctricas basadas en datos de la CNE 2024-2025
+// Incluyen precio de nudo promedio + valor agregado de distribución + cargos por transmisión
 export const electricityCostCLPPerKwhByRegion: Record<keyof typeof REGIONS, number> = {
-  XV: 195,
-  I: 190,
-  II: 185,
-  III: 180,
-  IV: 185,
-  V: 190,
-  RM: 195,
-  VI: 190,
-  VII: 185,
-  VIII: 180,
-  IX: 175,
-  XIV: 175,
-  X: 170,
-  XI: 165,
-  XII: 165,
+  XV: 220, // Extremo norte - mayor costo por distancia
+  I: 215,  // Norte
+  II: 210, // Antofagasta - zona minera
+  III: 205, // Atacama
+  IV: 200, // Coquimbo
+  V: 195,  // Valparaíso - zona central
+  RM: 190, // Metropolitana - mayor eficiencia de transmisión
+  VI: 195,  // O'Higgins
+  VII: 200, // Maule
+  XVI: 205, // Ñuble
+  VIII: 195, // Biobío - zona industrial
+  IX: 210,  // Araucanía - mayor distancia
+  XIV: 215, // Los Ríos
+  X: 220,   // Los Lagos - sur
+  XI: 235,  // Aysén - sistemas medianos
+  XII: 240, // Magallanes - sistemas aislados con gas natural y diésel
 }
 
+// Factor de emisión CO2 basado en datos del sistema eléctrico chileno
+// Fuente: Our World in Data y reportes oficiales del sistema eléctrico nacional
+// Sistema con 70% renovables y 30% fósiles (carbón, gas, diésel)
 export const carbonFactorKgPerKwhByRegion: Record<keyof typeof REGIONS, number> = {
-  XV: 0.32,
-  I: 0.35,
-  II: 0.38,
-  III: 0.30,
-  IV: 0.28,
-  V: 0.27,
-  RM: 0.25,
-  VI: 0.26,
-  VII: 0.27,
-  VIII: 0.29,
-  IX: 0.24,
-  XIV: 0.23,
-  X: 0.22,
-  XI: 0.20,
-  XII: 0.18,
+  XV: 0.25,  // Norte - alta penetración solar
+  I: 0.28,   // Tarapacá - mix solar/térmica
+  II: 0.32,  // Antofagasta - zona minera con térmica
+  III: 0.22,  // Atacama - alta penetración renovable
+  IV: 0.20,  // Coquimbo - eólico y solar
+  V: 0.23,   // Valparaíso - mix balanceado
+  RM: 0.22,  // Metropolitana - acceso a renovables
+  VI: 0.24,  // O'Higgins
+  VII: 0.21, // Maule - hidro y renovables
+  XVI: 0.23, // Ñuble - mix renovable/térmica
+  VIII: 0.26, // Biobío - mix industria/renovables
+  IX: 0.19,  // Araucanía - alta penetración hidro
+  XIV: 0.18, // Los Ríos - principalmente hidro
+  X: 0.17,   // Los Lagos - hidro y biomasa
+  XI: 0.35,  // Aysén - sistema mediano con diésel
+  XII: 0.42, // Magallanes - gas natural y diésel
 }
 
 export const APPLIANCES: Record<string, ApplianceDefinition> = {
-  // Refrigeración y preservación
-  refrigerator: { name: 'Refrigerador (2 puertas)', watts: 150 },
-  refrigerator_small: { name: 'Refrigerador pequeño', watts: 100 },
-  freezer: { name: 'Congelador horizontal', watts: 200 },
-  wine_cooler: { name: 'Cava de vinos', watts: 80 },
+  // Línea blanca - Refrigeración
+  refrigerator: { name: 'Refrigerador No Frost 300L', watts: 180 },
+  refrigerator_small: { name: 'Refrigerador bajo mesón 150L', watts: 120 },
+  refrigerator_large: { name: 'Refrigerador Side by Side 500L+', watts: 280 },
+  freezer: { name: 'Congelador horizontal 200L', watts: 150 },
+  wine_cooler: { name: 'Cava viñera', watts: 85 },
   
-  // Cocina y preparación de alimentos
-  microwave: { name: 'Microondas', watts: 1200 },
-  oven_electric: { name: 'Horno eléctrico', watts: 2500 },
-  induction_cooktop: { name: 'Anafe inducción', watts: 2000 },
-  electric_cooktop: { name: 'Anafe eléctrico', watts: 1800 },
-  kettle: { name: 'Hervidor eléctrico', watts: 2000 },
-  coffee_maker: { name: 'Cafetera eléctrica', watts: 1000 },
-  blender: { name: 'Licuadora', watts: 400 },
-  food_processor: { name: 'Procesador de alimentos', watts: 600 },
-  toaster: { name: 'Tostador', watts: 800 },
-  rice_cooker: { name: 'Arrocera', watts: 300 },
-  air_fryer: { name: 'Freidora de aire', watts: 1400 },
+  // Cocina
+  microwave: { name: 'Microondas 25L', watts: 1200 },
+  oven_electric: { name: 'Horno eléctrico empotrable', watts: 2400 },
+  cooktop_induction: { name: 'Cocina a inducción 4 quemadores', watts: 3000 },
+  cooktop_electric: { name: 'Cocina eléctrica vitrocerámica', watts: 2200 },
+  kettle: { name: 'Hervidor eléctrico 1.7L', watts: 1800 },
+  coffee_maker: { name: 'Cafetera de filtro', watts: 800 },
+  coffee_espresso: { name: 'Cafetera express', watts: 1400 },
+  blender: { name: 'Licuadora 1.5L', watts: 350 },
+  food_processor: { name: 'Multiprocesador de alimentos', watts: 500 },
+  toaster: { name: 'Tostadora 2 rebanadas', watts: 900 },
+  rice_cooker: { name: 'Arrocera 1L', watts: 350 },
+  air_fryer: { name: 'Freidora de aire 3.5L', watts: 1300 },
+  electric_grill: { name: 'Parrilla eléctrica', watts: 2000 },
   
   // Lavado y secado
-  washing_machine: { name: 'Lavadora', watts: 500 },
-  washing_machine_efficient: { name: 'Lavadora eficiente A+++', watts: 200 },
-  dryer: { name: 'Secadora', watts: 2500 },
-  dishwasher: { name: 'Lavavajillas', watts: 1800 },
+  washing_machine: { name: 'Lavadora automática 7kg', watts: 450 },
+  washing_machine_efficient: { name: 'Lavadora inverter A+++ 8kg', watts: 180 },
+  washer_dryer: { name: 'Lavadora-secadora 7kg', watts: 1200 },
+  dryer: { name: 'Secadora 7kg', watts: 2300 },
+  dishwasher: { name: 'Lavavajillas 12 cubiertos', watts: 1400 },
   
   // Climatización
-  ac_split: { name: 'Aire acondicionado split', watts: 1200 },
-  ac_portable: { name: 'Aire acondicionado portátil', watts: 1000 },
-  heater_resistance: { name: 'Estufa eléctrica', watts: 2000 },
-  heat_pump: { name: 'Bomba de calor', watts: 800 },
-  fan: { name: 'Ventilador', watts: 50 },
-  ceiling_fan: { name: 'Ventilador de techo', watts: 75 },
+  ac_split: { name: 'Aire acondicionado split 12000 BTU', watts: 1100 },
+  ac_portable: { name: 'Aire acondicionado portátil', watts: 900 },
+  heater_panel: { name: 'Panel calefactor eléctrico', watts: 1500 },
+  heater_ceramic: { name: 'Estufa cerámica', watts: 1800 },
+  heat_pump: { name: 'Bomba de calor aire-aire', watts: 650 },
+  fan: { name: 'Ventilador de pie', watts: 45 },
+  ceiling_fan: { name: 'Ventilador de techo con luz', watts: 85 },
   
   // Entretenimiento y electrónicos
-  tv: { name: 'Televisor LED 32"', watts: 100 },
-  tv_large: { name: 'Televisor LED 55"', watts: 150 },
-  tv_oled: { name: 'Televisor OLED 55"', watts: 120 },
-  sound_system: { name: 'Equipo de sonido', watts: 200 },
-  gaming_console: { name: 'Consola de videojuegos', watts: 150 },
+  tv_32: { name: 'Televisor LED 32" Full HD', watts: 80 },
+  tv_55: { name: 'Televisor LED 55" 4K', watts: 130 },
+  tv_65: { name: 'Televisor QLED 65" 4K', watts: 180 },
+  soundbar: { name: 'Barra de sonido', watts: 120 },
+  home_theater: { name: 'Home theater 5.1', watts: 300 },
+  gaming_console: { name: 'Consola PlayStation/Xbox', watts: 165 },
   
   // Computación
-  computer: { name: 'Computador de escritorio', watts: 200 },
-  laptop: { name: 'Notebook', watts: 60 },
-  monitor: { name: 'Monitor LED 24"', watts: 25 },
-  printer: { name: 'Impresora láser', watts: 400 },
-  router: { name: 'Router WiFi', watts: 10 },
+  desktop_pc: { name: 'PC de escritorio', watts: 180 },
+  laptop: { name: 'Notebook 15"', watts: 65 },
+  tablet: { name: 'Tablet en uso', watts: 8 },
+  monitor: { name: 'Monitor LED 24"', watts: 22 },
+  printer_inkjet: { name: 'Impresora de tinta', watts: 30 },
+  printer_laser: { name: 'Impresora láser', watts: 350 },
+  router: { name: 'Router Wi-Fi', watts: 12 },
   
   // Iluminación
-  incandescent_bulb: { name: 'Ampolleta incandescente 60W', watts: 60 },
-  led_bulb: { name: 'Ampolleta LED 9W', watts: 9 },
-  led_bulb_smart: { name: 'Ampolleta LED inteligente', watts: 10 },
-  fluorescent_tube: { name: 'Tubo fluorescente', watts: 36 },
+  led_bulb_9w: { name: 'Ampolleta LED 9W (60W equiv.)', watts: 9 },
+  led_bulb_15w: { name: 'Ampolleta LED 15W (100W equiv.)', watts: 15 },
+  led_strip: { name: 'Cinta LED por metro', watts: 14 },
+  fluorescent_tube: { name: 'Tubo fluorescente T8', watts: 36 },
+  halogen_bulb: { name: 'Ampolleta halógena 50W', watts: 50 },
   
   // Cuidado personal
-  hair_dryer: { name: 'Secador de pelo', watts: 1800 },
-  hair_straightener: { name: 'Plancha de pelo', watts: 200 },
-  electric_toothbrush: { name: 'Cepillo eléctrico (carga)', watts: 2 },
+  hair_dryer: { name: 'Secador de cabello 1800W', watts: 1800 },
+  hair_straightener: { name: 'Plancha alisadora', watts: 180 },
+  electric_shaver: { name: 'Afeitadora eléctrica', watts: 8 },
+  electric_toothbrush: { name: 'Cepillo dental eléctrico', watts: 2 },
   
   // Limpieza
-  vacuum: { name: 'Aspiradora', watts: 800 },
-  vacuum_robot: { name: 'Aspiradora robot', watts: 30 },
-  iron: { name: 'Plancha', watts: 1200 },
+  vacuum_upright: { name: 'Aspiradora vertical', watts: 750 },
+  vacuum_canister: { name: 'Aspiradora de trineo', watts: 850 },
+  vacuum_robot: { name: 'Aspiradora robot', watts: 28 },
+  steam_iron: { name: 'Plancha a vapor', watts: 1400 },
+  garment_steamer: { name: 'Vaporizador de ropa', watts: 1200 },
   
-  // Otros aparatos
-  water_heater_electric: { name: 'Calefón eléctrico', watts: 3000 },
-  water_pump: { name: 'Bomba de agua', watts: 750 },
-  garage_door: { name: 'Portón automático', watts: 300 },
-  security_system: { name: 'Sistema de seguridad', watts: 50 },
+  // Agua caliente y bombas
+  water_heater_electric: { name: 'Calefón eléctrico instantáneo', watts: 5500 },
+  water_heater_tank: { name: 'Termo eléctrico 80L', watts: 1500 },
+  water_pump: { name: 'Bomba de agua periférica', watts: 800 },
+  pool_pump: { name: 'Bomba de piscina', watts: 1200 },
   
-  // Carga de dispositivos
-  phone_charger: { name: 'Cargador de celular', watts: 5 },
-  tablet_charger: { name: 'Cargador de tablet', watts: 10 },
-  laptop_charger: { name: 'Cargador de notebook', watts: 65 },
+  // Automatización y seguridad
+  garage_door: { name: 'Motor portón corredizo', watts: 350 },
+  security_camera: { name: 'Cámara de seguridad IP', watts: 12 },
+  alarm_system: { name: 'Sistema de alarma', watts: 25 },
+  smart_doorbell: { name: 'Timbre inteligente', watts: 4 },
+  
+  // Cargadores y dispositivos móviles
+  phone_charger: { name: 'Cargador smartphone', watts: 20 },
+  tablet_charger: { name: 'Cargador tablet', watts: 12 },
+  laptop_charger: { name: 'Cargador notebook', watts: 90 },
+  smartwatch_charger: { name: 'Cargador smartwatch', watts: 5 },
+  
+  // Herramientas eléctricas
+  drill: { name: 'Taladro eléctrico', watts: 600 },
+  angle_grinder: { name: 'Esmeril angular', watts: 850 },
+  jigsaw: { name: 'Sierra caladora', watts: 400 },
+  
+  // Jardín y exterior
+  lawn_mower: { name: 'Cortacésped eléctrico', watts: 1200 },
+  hedge_trimmer: { name: 'Cortasetos eléctrico', watts: 450 },
+  outdoor_lighting: { name: 'Iluminación exterior LED', watts: 25 },
 } 
