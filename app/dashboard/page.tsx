@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { APPLIANCES, REGIONS, carbonFactorKgPerKwhByRegion, electricityCostCLPPerKwhByRegion } from '@/lib/constants'
 import { calculateMonthlyKwh, calculateCostCLP, calculateEmissionsKg } from '@/lib/calculations'
-import type { ApplianceDefinition, ApplianceEntry } from '@/lib/types'
+import type { ApplianceDefinition, ApplianceEntry, ScenarioDoc } from '@/lib/types'
 import { formatCurrencyCLP, formatNumber } from '@/lib/format'
 import { getFirebase, maybeSaveScenario, listScenariosByRut, deleteScenarioById, maybeGetRegionAverage } from '@/lib/firebase'
 import ConsumptionChart from '@/components/ConsumptionChart'
@@ -22,7 +22,7 @@ export default function DashboardPage() {
   const [compareB, setCompareB] = useState<string>('led_bulb')
   const [compareHours, setCompareHours] = useState<number>(4)
   const [priceDelta, setPriceDelta] = useState<number>(150000)
-  const [history, setHistory] = useState<any[]>([])
+  const [history, setHistory] = useState<ScenarioDoc[]>([])
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false)
   const [regionAvg, setRegionAvg] = useState<{ avgKwh: number; count: number } | null>(null)
   const [savingScenario, setSavingScenario] = useState<boolean>(false)
@@ -34,10 +34,32 @@ export default function DashboardPage() {
       router.replace('/')
       return
     }
-    const p = JSON.parse(saved)
-    setProfile(p)
+    try {
+      const p = JSON.parse(saved)
+      if (p?.rut && p?.region && typeof p.rut === 'string' && typeof p.region === 'string') {
+        setProfile(p)
+      } else {
+        throw new Error('Invalid profile structure')
+      }
+    } catch (error) {
+      console.warn('Error parsing profile:', error)
+      localStorage.removeItem('mec_profile')
+      router.replace('/')
+      return
+    }
+    
     const savedEntries = localStorage.getItem('mec_entries')
-    if (savedEntries) setEntries(JSON.parse(savedEntries))
+    if (savedEntries) {
+      try {
+        const parsedEntries = JSON.parse(savedEntries)
+        if (Array.isArray(parsedEntries)) {
+          setEntries(parsedEntries)
+        }
+      } catch (error) {
+        console.warn('Error parsing saved entries:', error)
+        localStorage.removeItem('mec_entries')
+      }
+    }
   }, [router])
 
   useEffect(() => {
@@ -131,8 +153,12 @@ export default function DashboardPage() {
         createdAt: new Date().toISOString(),
       }
       const scenarios = JSON.parse(localStorage.getItem('mec_scenarios') || '[]')
-      scenarios.push(scenario)
-      localStorage.setItem('mec_scenarios', JSON.stringify(scenarios))
+      if (Array.isArray(scenarios)) {
+        scenarios.push(scenario)
+        localStorage.setItem('mec_scenarios', JSON.stringify(scenarios))
+      } else {
+        localStorage.setItem('mec_scenarios', JSON.stringify([scenario]))
+      }
 
       const fb = await getFirebase()
       if (fb && profile?.rut) {
@@ -253,7 +279,12 @@ export default function DashboardPage() {
                 className="input" 
                 type="number" 
                 value={potencia} 
-                onChange={(e) => setPotencia(parseFloat(e.target.value))}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value)
+                  if (!isNaN(value) && value > 0) {
+                    setPotencia(value)
+                  }
+                }}
                 min="1"
                 max="10000"
               />
@@ -265,7 +296,12 @@ export default function DashboardPage() {
                 className="input" 
                 type="number" 
                 value={horas} 
-                onChange={(e) => setHoras(parseFloat(e.target.value))}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value)
+                  if (!isNaN(value) && value >= 0.1 && value <= 24) {
+                    setHoras(value)
+                  }
+                }}
                 min="0.1"
                 max="24"
                 step="0.1"
@@ -278,7 +314,12 @@ export default function DashboardPage() {
                 className="input" 
                 type="number" 
                 value={count} 
-                onChange={(e) => setCount(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value)
+                  if (!isNaN(value) && value >= 1 && value <= 50) {
+                    setCount(value)
+                  }
+                }}
                 min="1"
                 max="50"
               />
@@ -354,7 +395,12 @@ export default function DashboardPage() {
                               className="input w-20 text-right text-xs" 
                               type="number" 
                               value={e.watts} 
-                              onChange={(ev) => updateEntry(e.index, { watts: parseFloat(ev.target.value) })} 
+                              onChange={(ev) => {
+                                const value = parseFloat(ev.target.value)
+                                if (!isNaN(value) && value > 0) {
+                                  updateEntry(e.index, { watts: value })
+                                }
+                              }} 
                             />
                           </td>
                           <td className="p-3 text-right">
@@ -362,7 +408,12 @@ export default function DashboardPage() {
                               className="input w-16 text-right text-xs" 
                               type="number" 
                               value={e.hoursPerDay} 
-                              onChange={(ev) => updateEntry(e.index, { hoursPerDay: parseFloat(ev.target.value) })} 
+                              onChange={(ev) => {
+                                const value = parseFloat(ev.target.value)
+                                if (!isNaN(value) && value >= 0.1 && value <= 24) {
+                                  updateEntry(e.index, { hoursPerDay: value })
+                                }
+                              }} 
                             />
                           </td>
                           <td className="p-3 text-right">
@@ -370,7 +421,12 @@ export default function DashboardPage() {
                               className="input w-14 text-right text-xs" 
                               type="number" 
                               value={e.quantity} 
-                              onChange={(ev) => updateEntry(e.index, { quantity: parseInt(ev.target.value) })} 
+                              onChange={(ev) => {
+                                const value = parseInt(ev.target.value)
+                                if (!isNaN(value) && value >= 1) {
+                                  updateEntry(e.index, { quantity: value })
+                                }
+                              }} 
                             />
                           </td>
                           <td className={`p-3 text-right font-medium ${severityColor(kwh)}`}>
@@ -426,7 +482,12 @@ export default function DashboardPage() {
                             className="input text-xs" 
                             type="number" 
                             value={e.watts} 
-                            onChange={(ev) => updateEntry(e.index, { watts: parseFloat(ev.target.value) })} 
+                            onChange={(ev) => {
+                              const value = parseFloat(ev.target.value)
+                              if (!isNaN(value) && value > 0) {
+                                updateEntry(e.index, { watts: value })
+                              }
+                            }} 
                           />
                         </div>
                         <div>
@@ -435,7 +496,12 @@ export default function DashboardPage() {
                             className="input text-xs" 
                             type="number" 
                             value={e.hoursPerDay} 
-                            onChange={(ev) => updateEntry(e.index, { hoursPerDay: parseFloat(ev.target.value) })} 
+                            onChange={(ev) => {
+                              const value = parseFloat(ev.target.value)
+                              if (!isNaN(value) && value >= 0.1 && value <= 24) {
+                                updateEntry(e.index, { hoursPerDay: value })
+                              }
+                            }} 
                           />
                         </div>
                         <div>
@@ -444,7 +510,12 @@ export default function DashboardPage() {
                             className="input text-xs" 
                             type="number" 
                             value={e.quantity} 
-                            onChange={(ev) => updateEntry(e.index, { quantity: parseInt(ev.target.value) })} 
+                            onChange={(ev) => {
+                              const value = parseInt(ev.target.value)
+                              if (!isNaN(value) && value >= 1) {
+                                updateEntry(e.index, { quantity: value })
+                              }
+                            }} 
                           />
                         </div>
                       </div>
@@ -648,7 +719,12 @@ export default function DashboardPage() {
                 className="input" 
                 type="number" 
                 value={compareHours} 
-                onChange={(e) => setCompareHours(parseFloat(e.target.value))}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value)
+                  if (!isNaN(value) && value >= 0.1 && value <= 24) {
+                    setCompareHours(value)
+                  }
+                }}
                 min="0.1"
                 max="24"
                 step="0.1"
@@ -661,7 +737,12 @@ export default function DashboardPage() {
                 className="input" 
                 type="number" 
                 value={priceDelta} 
-                onChange={(e) => setPriceDelta(parseFloat(e.target.value))}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value)
+                  if (!isNaN(value) && value >= 0) {
+                    setPriceDelta(value)
+                  }
+                }}
                 min="0"
                 step="1000"
               />

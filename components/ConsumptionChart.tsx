@@ -14,13 +14,16 @@ interface ConsumptionChartProps {
 }
 
 export default function ConsumptionChart({ data, title = 'Distribución de Consumo' }: ConsumptionChartProps) {
-  if (data.length === 0) return null
+  if (!data || data.length === 0) return null
   
-  const maxKwh = Math.max(...data.map(d => d.kwh))
-  const totalKwh = data.reduce((sum, d) => sum + d.kwh, 0)
+  const validData = data.filter(d => d && typeof d.kwh === 'number' && d.kwh >= 0)
+  if (validData.length === 0) return null
+  
+  const maxKwh = Math.max(...validData.map(d => d.kwh))
+  const totalKwh = validData.reduce((sum, d) => sum + d.kwh, 0)
   
   // Tomar los top 5 consumidores
-  const topData = [...data].sort((a, b) => b.kwh - a.kwh).slice(0, 5)
+  const topData = [...validData].sort((a, b) => b.kwh - a.kwh).slice(0, 5)
   
   return (
     <div className="card">
@@ -70,9 +73,9 @@ export default function ConsumptionChart({ data, title = 'Distribución de Consu
           )
         })}
         
-        {data.length > 5 && (
+        {validData.length > 5 && (
           <div className="pt-2 border-t border-white/10 text-xs text-white/60 text-center">
-            Y {data.length - 5} electrodomésticos más...
+            Y {validData.length - 5} electrodomésticos más...
           </div>
         )}
       </div>
@@ -82,7 +85,7 @@ export default function ConsumptionChart({ data, title = 'Distribución de Consu
           <span className="text-white/70">Total mensual:</span>
           <div className="text-right">
             <div className="font-semibold">{formatNumber(totalKwh)} kWh</div>
-            <div className="text-xs text-white/60">{formatCurrencyCLP(data.reduce((sum, d) => sum + d.cost, 0))}</div>
+            <div className="text-xs text-white/60">{formatCurrencyCLP(validData.reduce((sum, d) => sum + d.cost, 0))}</div>
           </div>
         </div>
       </div>

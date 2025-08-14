@@ -17,10 +17,15 @@ export default function HomePage() {
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('mec_profile') : null
     if (saved) {
-      const data = JSON.parse(saved)
-      if (data?.rut && data?.region) {
-        setRut(formatRut(data.rut))
-        setRegion(data.region)
+      try {
+        const data = JSON.parse(saved)
+        if (data?.rut && data?.region && typeof data.rut === 'string' && typeof data.region === 'string') {
+          setRut(formatRut(data.rut))
+          setRegion(data.region)
+        }
+      } catch (error) {
+        console.warn('Error parsing saved profile:', error)
+        localStorage.removeItem('mec_profile')
       }
     }
   }, [])
