@@ -192,34 +192,34 @@ export const ENERGY_SAVING_TIPS = [
 // Programas gubernamentales de eficiencia energética en Chile
 export const GOVERNMENT_PROGRAMS = [
   {
-    name: 'Programa de Recambio de Refrigeradores',
-    description: 'Subsidio para cambiar refrigeradores antiguos por modelos eficientes',
-    institution: 'Ministerio de Energía - ASE',
-    website: 'https://energia.gob.cl'
+    name: 'Programa #Refriclaje',
+    description: 'Recambio de refrigeradores antiguos por modelos eficientes con 40% descuento',
+    institution: 'Global Environmental Facility - Fundación Chile - Sodimac',
+    website: 'https://www.refriclaje.cl'
   },
   {
     name: 'Casa Solar',
-    description: 'Subsidio para instalar paneles solares residenciales',
+    description: 'Subsidio para instalación de sistemas fotovoltaicos residenciales',
+    institution: 'Ministerio de Energía - Agencia de Sostenibilidad Energética',
+    website: 'https://asechile.cl'
+  },
+  {
+    name: 'Acondicionamiento Térmico de Viviendas',
+    description: 'Subsidio hasta 140 UF para mejorar aislación térmica',
+    institution: 'Ministerio de Vivienda y Urbanismo (MINVU)',
+    website: 'https://www.chileatiende.gob.cl'
+  },
+  {
+    name: 'Programa de Recambio de Calefactores',
+    description: 'Recambio de calefactores a leña por sistemas más eficientes',
+    institution: 'Ministerio del Medio Ambiente',
+    website: 'https://www.chileatiende.gob.cl'
+  },
+  {
+    name: 'Tarifa Eléctrica de Equidad',
+    description: 'Descuentos en cuenta de electricidad para hogares vulnerables',
     institution: 'Ministerio de Energía',
-    website: 'https://energia.gob.cl'
-  },
-  {
-    name: 'Acondicionamiento Térmico',
-    description: 'Subsidio para mejorar aislación térmica de viviendas (140 UF)',
-    institution: 'MINVU',
-    website: 'https://www.minvu.cl'
-  },
-  {
-    name: 'Subsidio Eléctrico',
-    description: 'Descuentos en cuenta de luz para familias vulnerables',
-    institution: 'Ministerio de Energía',
-    website: 'https://energia.gob.cl'
-  },
-  {
-    name: 'Leña Más Seca',
-    description: 'Programa para promover el uso de leña seca y reducir contaminación',
-    institution: 'Ministerio de Medio Ambiente',
-    website: 'https://mma.gob.cl'
+    website: 'https://www.cne.cl'
   }
 ]
 
