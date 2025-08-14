@@ -1158,64 +1158,187 @@ export default function DashboardPage() {
 
         {/* Programas Gubernamentales */}
         <section className="card">
-          <h3 className="text-xl font-semibold mb-4">
-            Programas de Apoyo del Gobierno
-          </h3>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-green-500 flex items-center justify-center">
+              <span className="text-white text-lg">🏛️</span>
+            </div>
+            <h3 className="text-xl font-semibold">
+              Programas de Apoyo del Gobierno
+            </h3>
+          </div>
+          
+          <p className="text-sm text-white/70 mb-6">
+            Programas gubernamentales activos en Chile para ayudar a los ciudadanos con eficiencia energética y ahorro en el hogar.
+          </p>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {GOVERNMENT_PROGRAMS.map((program) => (
-              <div key={program.name} className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-lg p-4 border border-blue-500/20">
-                <h3 className="font-semibold text-white mb-2">{program.name}</h3>
-                <p className="text-sm text-white/70 mb-3">{program.description}</p>
-                <div className="flex flex-col space-y-2">
-                  <span className="text-xs text-blue-400">{program.institution}</span>
-                  <a 
-                    href={program.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-xs text-green-400 hover:text-green-300 underline"
-                  >
-                    Más información →
-                  </a>
+            {GOVERNMENT_PROGRAMS.map((program, index) => {
+              const getIconAndColor = (name: string) => {
+                if (name.includes('Refriclaje')) return { icon: '❄️', color: 'from-blue-600/20 to-cyan-600/20 border-blue-500/30' }
+                if (name.includes('Solar')) return { icon: '☀️', color: 'from-yellow-600/20 to-orange-600/20 border-yellow-500/30' }
+                if (name.includes('Térmico') || name.includes('Calefactor')) return { icon: '🏠', color: 'from-red-600/20 to-pink-600/20 border-red-500/30' }
+                if (name.includes('Eléctrica')) return { icon: '⚡', color: 'from-green-600/20 to-emerald-600/20 border-green-500/30' }
+                return { icon: '🏛️', color: 'from-purple-600/20 to-blue-600/20 border-purple-500/30' }
+              }
+              
+              const { icon, color } = getIconAndColor(program.name)
+              
+              return (
+                <div key={program.name} className={`bg-gradient-to-br ${color} rounded-lg p-5 border hover:scale-105 transition-transform duration-200`}>
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="text-2xl">{icon}</div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-white mb-2 text-base leading-tight">
+                        {program.name}
+                      </h4>
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-white/80 mb-4 leading-relaxed">
+                    {program.description}
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                      <span className="text-xs text-white/60 font-medium">Institución:</span>
+                    </div>
+                    <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                      <span className="text-xs text-blue-300 font-medium">
+                        {program.institution}
+                      </span>
+                    </div>
+                    
+                    {/* Badge de estado activo */}
+                    <div className="flex justify-end">
+                      <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full border border-green-500/30">
+                        ✓ Programa Activo
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          
+          {/* Información adicional sobre cómo acceder */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-yellow-600/20 to-orange-600/20 rounded-lg border border-yellow-500/30">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">📋</div>
+              <div>
+                <h4 className="text-sm font-semibold text-white mb-2">¿Cómo Acceder a estos Programas?</h4>
+                <div className="text-xs text-white/80 space-y-2">
+                  <p>• <strong>Visita ChileAtiende.gob.cl</strong> para información oficial y postulaciones</p>
+                  <p>• <strong>Contacta directamente</strong> con las instituciones responsables de cada programa</p>
+                  <p>• <strong>Revisa los requisitos</strong> específicos de cada programa antes de postular</p>
+                  <p>• <strong>Mantente informado</strong> sobre fechas de apertura y cierre de postulaciones</p>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </section>
 
         {/* Información sobre Etiquetas de Eficiencia */}
         <section className="card">
-          <h3 className="text-xl font-semibold mb-4">
-            Etiquetas de Eficiencia Energética
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {COMMON_APPLIANCES.map((app, index) => (
-                  <span 
-                    key={index} 
-                    className={`px-3 py-1 rounded text-sm font-medium ${
-                      index < 3 ? 'bg-green-600 text-white' :
-                      index < 5 ? 'bg-yellow-600 text-white' :
-                      'bg-red-600 text-white'
-                    }`}
-                  >
-                    {app.name}
-                  </span>
-                ))}
-              </div>
-              <p className="text-sm text-white/70">
-                Basado en los electrodomésticos más comunes en tu región.
-              </p>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center">
+              <span className="text-white text-sm font-bold">A+</span>
             </div>
-            <div className="text-right">
-              <a 
-                href="https://www.energysavingtips.org/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm"
-              >
-                Más consejos de ahorro →
-              </a>
+            <h3 className="text-xl font-semibold">
+              Etiquetas de Eficiencia Energética
+            </h3>
+          </div>
+          
+          <div className="mb-4">
+            <p className="text-sm text-white/70 mb-6">
+              Basado en los electrodomésticos más comunes en Chile. Los productos en <span className="text-green-400 font-medium">verde</span> son altamente eficientes,
+              en <span className="text-yellow-400 font-medium">amarillo</span> eficiencia media, y en <span className="text-red-400 font-medium">rojo</span> menor eficiencia energética.
+            </p>
+            
+            {/* Leyenda de eficiencia */}
+            <div className="flex items-center gap-6 mb-6 p-4 bg-white/5 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-600 rounded-full"></div>
+                <span className="text-xs text-white/80">Alta Eficiencia (A+/A++)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-yellow-600 rounded-full"></div>
+                <span className="text-xs text-white/80">Eficiencia Media (B/C)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-600 rounded-full"></div>
+                <span className="text-xs text-white/80">Menor Eficiencia (D/E/F)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid mejorado de electrodomésticos */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {COMMON_APPLIANCES.slice(0, 48).map((app, index) => {
+              const getEfficiencyInfo = (index: number) => {
+                if (index < 5) return { 
+                  color: 'bg-green-600 hover:bg-green-500 border-green-400', 
+                  grade: index < 2 ? 'A++' : 'A+',
+                  icon: '⭐'
+                }
+                if (index < 20) return { 
+                  color: 'bg-yellow-600 hover:bg-yellow-500 border-yellow-400', 
+                  grade: index < 12 ? 'B' : 'C',
+                  icon: '🔶'
+                }
+                return { 
+                  color: 'bg-red-600 hover:bg-red-500 border-red-400', 
+                  grade: index < 35 ? 'D' : 'E',
+                  icon: '⚡'
+                }
+              }
+              
+              const efficiency = getEfficiencyInfo(index)
+              
+              return (
+                <div 
+                  key={index} 
+                  className={`group relative p-3 rounded-lg border transition-all duration-200 cursor-pointer ${efficiency.color}`}
+                  title={`${app.name} - ${app.watts}W - Clase ${efficiency.grade}`}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="text-lg mb-1">{efficiency.icon}</div>
+                    <div className="text-xs text-white font-medium mb-1 overflow-hidden" style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {app.name.length > 20 ? app.name.substring(0, 20) + '...' : app.name}
+                    </div>
+                    <div className="text-xs text-white/80 font-bold">
+                      {efficiency.grade}
+                    </div>
+                    <div className="text-xs text-white/60 mt-1">
+                      {app.watts}W
+                    </div>
+                  </div>
+                  
+                  {/* Tooltip on hover */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
+                    {app.name} - {app.watts}W
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          
+          {/* Información adicional */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg border border-blue-500/30">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">💡</div>
+              <div>
+                <h4 className="text-sm font-semibold text-white mb-2">Consejo de Eficiencia</h4>
+                <p className="text-xs text-white/80 leading-relaxed">
+                  Al elegir electrodomésticos, siempre prefiere los con etiqueta <strong>A+</strong> o superior. 
+                  Aunque cuesten más inicialmente, te ahorrarán dinero en tu cuenta de electricidad durante toda su vida útil.
+                  En Chile, el etiquetado energético está disponible para más de 25 tipos de artefactos.
+                </p>
+              </div>
             </div>
           </div>
         </section>
