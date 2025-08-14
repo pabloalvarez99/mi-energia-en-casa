@@ -9,6 +9,7 @@ import { formatCurrencyCLP, formatNumber } from '@/lib/format'
 import { getFirebase, maybeSaveScenario, listScenariosByRut, deleteScenarioById, maybeGetRegionAverage } from '@/lib/firebase'
 import ConsumptionChart from '@/components/ConsumptionChart'
 import SavingsCalculator from '@/components/SavingsCalculator'
+import { ENERGY_SAVING_TIPS, GOVERNMENT_PROGRAMS, ENERGY_LABELS, CLIMATE_DATA } from '@/lib/constants'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -1029,6 +1030,100 @@ export default function DashboardPage() {
               Cada kWh ahorrado evita aproximadamente <span className="font-medium">{formatNumber(cf)} kg de CO₂</span> en su región. 
               Los pequeños cambios contribuyen significativamente a la reducción de emisiones.
             </p>
+          </div>
+        </section>
+
+        {/* Consejos de Eficiencia Energética */}
+        <section className="card">
+          <h3 className="text-xl font-semibold mb-4">
+            Consejos de Eficiencia Energética
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ENERGY_SAVING_TIPS.map((section) => (
+              <div key={section.category} className="bg-gray-700/50 rounded-lg p-4">
+                <h3 className="font-semibold text-white mb-3 flex items-center">
+                  <span className="mr-2">
+                    {section.category === 'Vivienda' && '🏠'}
+                    {section.category === 'Cocina' && '🍳'}
+                    {section.category === 'Baño' && '🚿'}
+                    {section.category === 'Iluminación' && '💡'}
+                    {section.category === 'Electrodomésticos' && '📱'}
+                    {section.category === 'Transporte' && '🚗'}
+                  </span>
+                  {section.category}
+                </h3>
+                <ul className="space-y-2">
+                  {section.tips.map((tip, index) => (
+                    <li key={index} className="text-sm text-white/80 leading-snug flex items-start">
+                      <span className="mr-2 text-green-400 flex-shrink-0 mt-1">•</span>
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Programas Gubernamentales */}
+        <section className="card">
+          <h3 className="text-xl font-semibold mb-4">
+            Programas de Apoyo del Gobierno
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {GOVERNMENT_PROGRAMS.map((program) => (
+              <div key={program.name} className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-lg p-4 border border-blue-500/20">
+                <h3 className="font-semibold text-white mb-2">{program.name}</h3>
+                <p className="text-sm text-white/70 mb-3">{program.description}</p>
+                <div className="flex flex-col space-y-2">
+                  <span className="text-xs text-blue-400">{program.institution}</span>
+                  <a 
+                    href={program.website} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-green-400 hover:text-green-300 underline"
+                  >
+                    Más información →
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Información sobre Etiquetas de Eficiencia */}
+        <section className="card">
+          <h3 className="text-xl font-semibold mb-4">
+            Etiquetas de Eficiencia Energética
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {ENERGY_LABELS.grades.map((grade, index) => (
+                  <span 
+                    key={grade} 
+                    className={`px-3 py-1 rounded text-sm font-medium ${
+                      index < 3 ? 'bg-green-600 text-white' :
+                      index < 5 ? 'bg-yellow-600 text-white' :
+                      'bg-red-600 text-white'
+                    }`}
+                  >
+                    {grade}
+                  </span>
+                ))}
+              </div>
+              <p className="text-sm text-white/70">{ENERGY_LABELS.recommendation}</p>
+            </div>
+            <div className="text-right">
+              <a 
+                href={ENERGY_LABELS.website} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm"
+              >
+                Comparar productos →
+              </a>
+            </div>
           </div>
         </section>
       </main>
