@@ -231,41 +231,311 @@ export const ENERGY_LABELS = {
   recommendation: 'Siempre prefiere productos con calificación A, A+ o superior'
 }
 
-// Datos climáticos específicos por región para cálculos de calefacción
-export const CLIMATE_DATA = {
-  'XV': { zone: 'Desértico', heatingMonths: 3, coolingMonths: 0 },
-  'I': { zone: 'Desértico', heatingMonths: 3, coolingMonths: 0 },
-  'II': { zone: 'Desértico', heatingMonths: 3, coolingMonths: 1 },
-  'III': { zone: 'Desértico', heatingMonths: 4, coolingMonths: 1 },
-  'IV': { zone: 'Semiárido', heatingMonths: 5, coolingMonths: 2 },
-  'V': { zone: 'Mediterráneo', heatingMonths: 6, coolingMonths: 1 },
-  'RM': { zone: 'Mediterráneo', heatingMonths: 6, coolingMonths: 2 },
-  'VI': { zone: 'Mediterráneo', heatingMonths: 6, coolingMonths: 1 },
-  'VII': { zone: 'Mediterráneo', heatingMonths: 7, coolingMonths: 1 },
-  'XVI': { zone: 'Mediterráneo', heatingMonths: 7, coolingMonths: 0 },
-  'VIII': { zone: 'Templado Húmedo', heatingMonths: 8, coolingMonths: 0 },
-  'IX': { zone: 'Templado Húmedo', heatingMonths: 9, coolingMonths: 0 },
-  'XIV': { zone: 'Templado Lluvioso', heatingMonths: 9, coolingMonths: 0 },
-  'X': { zone: 'Templado Lluvioso', heatingMonths: 9, coolingMonths: 0 },
-  'XI': { zone: 'Subantártico', heatingMonths: 10, coolingMonths: 0 },
-  'XII': { zone: 'Subantártico', heatingMonths: 10, coolingMonths: 0 },
-}
-
-// Información sobre consumo promedio por hogar en Chile
-export const CHILE_CONSUMPTION_DATA = {
-  averageMonthlyConsumption: 180, // kWh/mes promedio hogar chileno
-  percentageByUse: {
-    heating: 36.6, // % del consumo residencial
-    lighting: 16.8,
-    appliances: 19.4,
-    waterHeating: 12.3,
-    cooking: 8.2,
-    other: 6.7
+// Información específica por región basada en investigación oficial
+export const REGIONAL_CONTEXT = {
+  'XV': {
+    climate: 'Desértico costero',
+    mainChallenges: ['Calor extremo', 'Alta radiación solar', 'Escasez hídrica'],
+    energyProfile: 'Alto potencial solar, demanda de refrigeración',
+    economicContext: 'Minería, agricultura, turismo fronterizo',
+    infrastructure: 'Red eléctrica estable, sistemas de riego tecnificado'
   },
-  seasonalVariation: {
-    winter: 1.35, // Factor multiplicador invierno
-    summer: 0.85, // Factor multiplicador verano
-    spring: 1.0,
-    autumn: 1.1
+  'I': {
+    climate: 'Desértico absoluto',
+    mainChallenges: ['Altas temperaturas', 'Sequedad extrema', 'Amplitud térmica'],
+    energyProfile: 'Excelente recurso solar, industria minera',
+    economicContext: 'Gran minería del cobre, industria química',
+    infrastructure: 'Sistemas industriales de alta demanda energética'
+  },
+  'II': {
+    climate: 'Desértico costero e interior',
+    mainChallenges: ['Clima árido', 'Altas temperaturas diurnas', 'Vientos costeros'],
+    energyProfile: 'Líder en energía solar, gran demanda minera',
+    economicContext: 'Cobre, litio, astronomía',
+    infrastructure: 'Hub energético del norte, interconexión SING'
+  },
+  'III': {
+    climate: 'Desértico marginal',
+    mainChallenges: ['Sequedad', 'Oscilación térmica', 'Vientos'],
+    energyProfile: 'Alto potencial solar y eólico',
+    economicContext: 'Minería del hierro y cobre, agricultura de oasis',
+    infrastructure: 'Sistemas de bombeo solar, riego tecnificado'
+  },
+  'IV': {
+    climate: 'Semi-árido con influencia marina',
+    mainChallenges: ['Sequía recurrente', 'Vientos costeros', 'Heladas'],
+    energyProfile: 'Excelente recurso eólico y solar',
+    economicContext: 'Agricultura, minería, turismo',
+    infrastructure: 'Parques eólicos, sistemas de riego eficiente'
+  },
+  'V': {
+    climate: 'Mediterráneo costero',
+    mainChallenges: ['Escasez hídrica', 'Contaminación urbana', 'Crecimiento urbano'],
+    energyProfile: 'Consumo urbano alto, potencial renovable',
+    economicContext: 'Puerto principal, industria, turismo',
+    infrastructure: 'Gran consumo urbano, refinerías'
+  },
+  'RM': {
+    climate: 'Mediterráneo continental',
+    mainChallenges: ['Contaminación atmosférica', 'Isla de calor urbano', 'Alta demanda'],
+    energyProfile: 'Mayor consumo del país (205 kWh/mes promedio)',
+    economicContext: 'Centro económico, servicios, industria',
+    infrastructure: 'Red compleja, alta densidad poblacional'
+  },
+  'VI': {
+    climate: 'Mediterráneo continental',
+    mainChallenges: ['Sequía', 'Heladas', 'Calefacción estacional'],
+    energyProfile: 'Agroindustria, consumo estacional',
+    economicContext: 'Agricultura, ganadería, minería del cobre',
+    infrastructure: 'Sistemas de riego, industrias agrícolas'
+  },
+  'VII': {
+    climate: 'Mediterráneo de interior',
+    mainChallenges: ['Precipitaciones variables', 'Heladas', 'Calefacción'],
+    energyProfile: 'Hidroelectricidad, biomasa forestal',
+    economicContext: 'Agricultura, silvicultura, industria',
+    infrastructure: 'Centrales hidroeléctricas, industria maderera'
+  },
+  'XVI': {
+    climate: 'Mediterráneo lluvioso',
+    mainChallenges: ['Frío invernal', 'Humedad', 'Calefacción residencial'],
+    energyProfile: 'Uso intensivo de biomasa, hidroelectricidad',
+    economicContext: 'Agricultura, silvicultura',
+    infrastructure: 'Redes rurales, sistemas a leña'
+  },
+  'VIII': {
+    climate: 'Oceánico templado',
+    mainChallenges: ['Contaminación por leña', 'Frío invernal', 'Lluvia'],
+    energyProfile: 'Alto consumo de calefacción, industria forestal',
+    economicContext: 'Industria pesada, celulosa, carbón',
+    infrastructure: 'Termoeléctricas, industrias energo-intensivas'
+  },
+  'IX': {
+    climate: 'Templado lluvioso',
+    mainChallenges: ['Contaminación atmosférica crítica', 'Uso de leña húmeda', 'Pobreza energética'],
+    energyProfile: 'Temuco: segunda ciudad más contaminada (después Beijing)',
+    economicContext: 'Agricultura, ganadería, turismo',
+    infrastructure: 'Problema crítico de calefacción residencial'
+  },
+  'XIV': {
+    climate: 'Templado oceánico',
+    mainChallenges: ['Alta pluviosidad', 'Frío húmedo', 'Dependencia de leña'],
+    energyProfile: 'Gran potencial hidroeléctrico',
+    economicContext: 'Industria cervecera, turismo, agricultura',
+    infrastructure: 'Hidroeléctricas de pasada, turismo sustentable'
+  },
+  'X': {
+    climate: 'Templado lluvioso',
+    mainChallenges: ['Frío intenso', 'Lluvias abundantes', 'Aislamiento geográfico'],
+    energyProfile: 'Dependencia de leña, potencial renovable',
+    economicContext: 'Acuicultura, turismo, ganadería',
+    infrastructure: 'Sistemas aislados, microhidráulica'
+  },
+  'XI': {
+    climate: 'Frío oceánico',
+    mainChallenges: ['Clima extremo', 'Aislamiento', 'Altos costos energéticos'],
+    energyProfile: 'Sistemas aislados, dependencia de combustibles',
+    economicContext: 'Ganadería, turismo de aventura',
+    infrastructure: 'Microredes, sistemas híbridos renovables'
+  },
+  'XII': {
+    climate: 'Frío de estepa patagónica',
+    mainChallenges: ['Vientos extremos', 'Frío intenso', 'Lejanía'],
+    energyProfile: 'Excelente recurso eólico, gas natural',
+    economicContext: 'Ganadería ovina, turismo, gas',
+    infrastructure: 'Sistemas eólicos, redes locales'
   }
-} 
+} as const
+
+export const SEASONAL_RECOMMENDATIONS = {
+  'XV': {
+    verano: ['Maximizar refrigeración eficiente', 'Usar protección solar', 'Aprovechar energía solar'],
+    invierno: ['Reducir calefacción nocturna', 'Mantener refrigeración', 'Optimizar iluminación natural'],
+    tips: ['Instalar paneles solares', 'Usar aires acondicionados inverter', 'Aislación térmica de techos']
+  },
+  'I': {
+    verano: ['Refrigeración industrial eficiente', 'Protección solar extrema', 'Sistemas de enfriamiento evaporativo'],
+    invierno: ['Calefacción nocturna mínima', 'Aprovechar masa térmica', 'Mantener equipos de frío'],
+    tips: ['Techos reflectivos blancos', 'Sistemas de refrigeración industrial', 'Aprovechamiento solar máximo']
+  },
+  'II': {
+    verano: ['Aire acondicionado eficiente', 'Ventilación nocturna', 'Protección solar'],
+    invierno: ['Calefacción moderada', 'Aprovechar sol matinal', 'Ventilación controlada'],
+    tips: ['Paneles solares fotovoltaicos', 'Bombas de calor', 'Aislación térmica en muros']
+  },
+  'III': {
+    verano: ['Refrigeración diurna', 'Ventilación cruzada', 'Sombreamiento'],
+    invierno: ['Calefacción selectiva', 'Captación solar pasiva', 'Aislación nocturna'],
+    tips: ['Sistemas híbridos solar-eólico', 'Climatización zonal', 'Ventanas de doble vidrio']
+  },
+  'IV': {
+    verano: ['Ventilación marina', 'Refrigeración nocturna', 'Sombreamiento móvil'],
+    invierno: ['Calefacción anti-heladas', 'Captación solar', 'Protección del viento'],
+    tips: ['Aprovechamiento eólico', 'Calefont solar', 'Aislación de pisos']
+  },
+  'V': {
+    verano: ['Ventilación marina nocturna', 'Sombreamiento', 'Refrigeración eficiente'],
+    invierno: ['Calefacción central', 'Captación solar', 'Hermeticidad'],
+    tips: ['Sistemas solares térmicos', 'Calefacción a gas eficiente', 'Mejoramiento térmico']
+  },
+  'RM': {
+    verano: ['Climatización eficiente', 'Ventilación nocturna', 'Evitar isla de calor'],
+    invierno: ['Calefacción limpia', 'Aislación térmica', 'Ventilación controlada'],
+    tips: ['Reemplazo de calefactores', 'Aislación de muros y techos', 'Sistemas de climatización inverter']
+  },
+  'VI': {
+    verano: ['Refrigeración agrícola', 'Ventilación nocturna', 'Protección solar'],
+    invierno: ['Calefacción anti-heladas', 'Aislación rural', 'Calentadores solares'],
+    tips: ['Sistemas de riego solar', 'Calefacción a pellets', 'Mejoramiento térmico rural']
+  },
+  'VII': {
+    verano: ['Ventilación natural', 'Refrigeración industrial', 'Sombreamiento'],
+    invierno: ['Calefacción a biomasa limpia', 'Aislación térmica', 'Hermeticidad'],
+    tips: ['Calentadores solares', 'Estufas eficientes', 'Aislación de viviendas sociales']
+  },
+  'XVI': {
+    verano: ['Ventilación natural', 'Refrigeración moderada', 'Aprovechamiento solar'],
+    invierno: ['Calefacción eficiente', 'Leña seca certificada', 'Aislación completa'],
+    tips: ['Estufas de doble cámara', 'Aislación térmica integral', 'Calefont solar']
+  },
+  'VIII': {
+    verano: ['Ventilación húmeda', 'Deshumidificación', 'Sombreamiento'],
+    invierno: ['Calefacción limpia obligatoria', 'Leña seca', 'Aislación térmica máxima'],
+    tips: ['Recambio de estufas', 'Programa de aislación térmica', 'Calefacción distrital']
+  },
+  'IX': {
+    verano: ['Ventilación anti-humedad', 'Deshumidificación', 'Aprovechamiento solar limitado'],
+    invierno: ['CALEFACCIÓN LIMPIA CRÍTICA', 'Leña certificada seca', 'Aislación térmica urgente'],
+    tips: ['RECAMBIO OBLIGATORIO estufas', 'Subsidios de aislación', 'Calefacción eléctrica nocturna']
+  },
+  'XIV': {
+    verano: ['Ventilación constante', 'Deshumidificación', 'Aprovechamiento solar ocasional'],
+    invierno: ['Calefacción eficiente húmeda', 'Leña muy seca', 'Aislación anti-humedad'],
+    tips: ['Estufas herméticas', 'Aislación con barrera de vapor', 'Sistemas de ventilación']
+  },
+  'X': {
+    verano: ['Calefacción nocturna', 'Deshumidificación constante', 'Ventilación anti-humedad'],
+    invierno: ['CALEFACCIÓN INTENSA', 'Leña seca premium', 'Aislación térmica máxima'],
+    tips: ['Sistemas de calefacción central', 'Aislación térmica completa', 'Bombas de calor geotérmicas']
+  },
+  'XI': {
+    verano: ['Calefacción moderada', 'Protección del viento', 'Sistemas híbridos'],
+    invierno: ['Calefacción extrema', 'Combustibles premium', 'Aislación total'],
+    tips: ['Sistemas híbridos renovables', 'Aislación extrema', 'Calefacción de respaldo']
+  },
+  'XII': {
+    verano: ['Protección eólica', 'Calefacción básica', 'Sistemas eólicos'],
+    invierno: ['Calefacción anti-viento extremo', 'Combustibles de calidad', 'Hermeticidad total'],
+    tips: ['Aprovechamiento eólico', 'Aislación contra viento', 'Sistemas de calefacción robustos']
+  }
+} as const
+
+export const REGIONAL_PROGRAMS = {
+  'IX': [
+    'Plan de Descontaminación Atmosférica (crítico)',
+    'Programa de Recambio de Calefactores (obligatorio)',
+    'Subsidio Leña Seca Certificada',
+    'Programa de Aislación Térmica de Emergencia',
+    'Fiscalización de Emisiones Residenciales'
+  ],
+  'VIII': [
+    'Plan de Descontaminación del Gran Concepción',
+    'Programa de Recambio de Estufas a Leña',
+    'Mejoramiento Térmico de Viviendas',
+    'Centros de Acopio de Leña Seca',
+    'Programa de Calefacción Distrital'
+  ],
+  'XIV': [
+    'Programa Centros Integrales de Biomasa',
+    'Subsidio para Leña Seca',
+    'Mejoramiento de Estufas Rurales',
+    'Programa de Aislación Térmica Rural',
+    'Incentivos para Calentadores Solares'
+  ],
+  'X': [
+    'Programa de Calefacción Limpia',
+    'Subsidios para Bombas de Calor',
+    'Mejoramiento Térmico de Viviendas Australes',
+    'Programa de Leña Seca Certificada',
+    'Sistemas de Calefacción Distrital'
+  ],
+  'RM': [
+    'Plan de Prevención y Descontaminación Atmosférica',
+    'Programa de Recambio de Calefactores',
+    'Subsidios de Acondicionamiento Térmico',
+    'Programa Techos Solares',
+    'Mejoramiento Energético de Edificios Públicos'
+  ],
+  'II': [
+    'Programa de Energía Solar Residencial',
+    'Incentivos para Sistemas Fotovoltaicos',
+    'Programa de Eficiencia en Minería',
+    'Sistemas de Refrigeración Eficiente',
+    'Aprovechamiento Solar Térmico'
+  ],
+  'V': [
+    'Programa de Eficiencia Energética Portuaria',
+    'Techos Solares en Edificios Públicos',
+    'Mejoramiento Térmico Urbano',
+    'Sistemas de Calefacción Eficiente',
+    'Programa de Movilidad Eléctrica'
+  ]
+} as const
+
+export const REGIONAL_CONSUMPTION_PATTERNS = {
+  'RM': {
+    averageMonthly: 205, // kWh/mes
+    peakSeason: 'invierno',
+    mainUses: ['Calefacción (45%)', 'Agua caliente (23%)', 'Electrodomésticos (20%)', 'Iluminación (12%)'],
+    challengeMonths: ['Junio', 'Julio', 'Agosto'],
+    tipicalHour: '19:00-22:00'
+  },
+  'IX': {
+    averageMonthly: 180,
+    peakSeason: 'invierno',
+    mainUses: ['Calefacción a leña (60%)', 'Agua caliente (20%)', 'Electrodomésticos (15%)', 'Iluminación (5%)'],
+    challengeMonths: ['Mayo a Septiembre'],
+    tipicalHour: '18:00-23:00'
+  },
+  'II': {
+    averageMonthly: 220,
+    peakSeason: 'verano',
+    mainUses: ['Refrigeración (40%)', 'Procesos industriales (35%)', 'Electrodomésticos (15%)', 'Iluminación (10%)'],
+    challengeMonths: ['Diciembre', 'Enero', 'Febrero'],
+    tipicalHour: '14:00-17:00'
+  },
+  'VIII': {
+    averageMonthly: 190,
+    peakSeason: 'invierno',
+    mainUses: ['Calefacción (55%)', 'Agua caliente (25%)', 'Electrodomésticos (15%)', 'Iluminación (5%)'],
+    challengeMonths: ['Junio a Agosto'],
+    tipicalHour: '18:00-22:00'
+  },
+  'X': {
+    averageMonthly: 170,
+    peakSeason: 'invierno',
+    mainUses: ['Calefacción (65%)', 'Agua caliente (20%)', 'Electrodomésticos (10%)', 'Iluminación (5%)'],
+    challengeMonths: ['Mayo a Septiembre'],
+    tipicalHour: '17:00-23:00'
+  }
+} as const
+
+// Información específica de clima por región
+export const CLIMATE_ZONES = {
+  'XV': { zone: 1, type: 'Árido costero', heating: 'Mínima', cooling: 'Alta' },
+  'I': { zone: 1, type: 'Desértico absoluto', heating: 'Mínima', cooling: 'Muy Alta' },
+  'II': { zone: 1, type: 'Desértico', heating: 'Baja', cooling: 'Alta' },
+  'III': { zone: 2, type: 'Semi-árido', heating: 'Baja', cooling: 'Media' },
+  'IV': { zone: 2, type: 'Semi-árido costero', heating: 'Media', cooling: 'Media' },
+  'V': { zone: 3, type: 'Mediterráneo costero', heating: 'Media', cooling: 'Media' },
+  'RM': { zone: 3, type: 'Mediterráneo continental', heating: 'Media-Alta', cooling: 'Media' },
+  'VI': { zone: 4, type: 'Mediterráneo interior', heating: 'Alta', cooling: 'Baja' },
+  'VII': { zone: 4, type: 'Mediterráneo lluvioso', heating: 'Alta', cooling: 'Baja' },
+  'XVI': { zone: 5, type: 'Templado', heating: 'Alta', cooling: 'Mínima' },
+  'VIII': { zone: 5, type: 'Templado lluvioso', heating: 'Muy Alta', cooling: 'Mínima' },
+  'IX': { zone: 6, type: 'Templado frío', heating: 'Extrema', cooling: 'Mínima' },
+  'XIV': { zone: 6, type: 'Oceánico templado', heating: 'Muy Alta', cooling: 'Mínima' },
+  'X': { zone: 6, type: 'Templado húmedo', heating: 'Extrema', cooling: 'Mínima' },
+  'XI': { zone: 7, type: 'Frío oceánico', heating: 'Extrema', cooling: 'Nula' },
+  'XII': { zone: 7, type: 'Frío de estepa', heating: 'Extrema', cooling: 'Nula' }
+} as const 

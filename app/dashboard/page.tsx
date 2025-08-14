@@ -2,14 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { COMMON_APPLIANCES, REGIONS, CO2_FACTOR, ELECTRICITY_RATES } from '@/lib/constants'
+import { COMMON_APPLIANCES, REGIONS, CO2_FACTOR, ELECTRICITY_RATES, REGIONAL_CONTEXT, SEASONAL_RECOMMENDATIONS, REGIONAL_PROGRAMS, REGIONAL_CONSUMPTION_PATTERNS, CLIMATE_ZONES, ENERGY_SAVING_TIPS, GOVERNMENT_PROGRAMS } from '@/lib/constants'
 import { calculateMonthlyKwh, calculateCostCLP, calculateEmissionsKg } from '@/lib/calculations'
 import type { ApplianceDefinition, ApplianceEntry, ScenarioDoc } from '@/lib/types'
 import { formatCurrencyCLP, formatNumber } from '@/lib/format'
 import { getFirebase, maybeSaveScenario, listScenariosByRut, deleteScenarioById, maybeGetRegionAverage } from '@/lib/firebase'
 import ConsumptionChart from '@/components/ConsumptionChart'
 import SavingsCalculator from '@/components/SavingsCalculator'
-import { ENERGY_SAVING_TIPS, GOVERNMENT_PROGRAMS, ENERGY_LABELS, CLIMATE_DATA } from '@/lib/constants'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -547,13 +546,13 @@ export default function DashboardPage() {
               <h2 className="text-xl font-semibold text-white">Mi Consumo Energético</h2>
               <p className="text-white/60 text-sm">Análisis personalizado para Chile</p>
             </div>
-            {profile && CLIMATE_DATA[profile.region as keyof typeof CLIMATE_DATA] && (
+            {profile && CLIMATE_ZONES[profile.region as keyof typeof CLIMATE_ZONES] && (
               <div className="text-right">
                 <div className="text-sm text-green-400 bg-green-900/20 px-3 py-1 rounded-full">
-                  Zona {CLIMATE_DATA[profile.region as keyof typeof CLIMATE_DATA].zone}
+                  Zona {CLIMATE_ZONES[profile.region as keyof typeof CLIMATE_ZONES].zone}
                 </div>
                 <div className="text-xs text-white/40 mt-1">
-                  {CLIMATE_DATA[profile.region as keyof typeof CLIMATE_DATA].heatingMonths} meses de calefacción
+                  {CLIMATE_ZONES[profile.region as keyof typeof CLIMATE_ZONES].type}
                 </div>
               </div>
             )}
@@ -629,7 +628,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Proyección anual */}
-          {profile && CLIMATE_DATA[profile.region as keyof typeof CLIMATE_DATA] && (
+          {profile && CLIMATE_ZONES[profile.region as keyof typeof CLIMATE_ZONES] && (
             <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
               <h4 className="text-white font-medium mb-3">Proyección Anual Estimada</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
@@ -1191,33 +1190,211 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="flex flex-wrap gap-2 mb-4">
-                {ENERGY_LABELS.grades.map((grade, index) => (
+                {COMMON_APPLIANCES.map((app, index) => (
                   <span 
-                    key={grade} 
+                    key={index} 
                     className={`px-3 py-1 rounded text-sm font-medium ${
                       index < 3 ? 'bg-green-600 text-white' :
                       index < 5 ? 'bg-yellow-600 text-white' :
                       'bg-red-600 text-white'
                     }`}
                   >
-                    {grade}
+                    {app.name}
                   </span>
                 ))}
               </div>
-              <p className="text-sm text-white/70">{ENERGY_LABELS.recommendation}</p>
+              <p className="text-sm text-white/70">
+                Basado en los electrodomésticos más comunes en tu región.
+              </p>
             </div>
             <div className="text-right">
               <a 
-                href={ENERGY_LABELS.website} 
+                href="https://www.energysavingtips.org/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm"
               >
-                Comparar productos →
+                Más consejos de ahorro →
               </a>
             </div>
           </div>
         </section>
+
+        {/* Información Específica por Región */}
+        {profile && REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT] && (
+          <section className="card">
+            <h2 className="text-xl font-semibold mb-6 text-white flex items-center">
+              <svg className="w-6 h-6 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Información para {REGIONS[profile.region as keyof typeof REGIONS].name}
+            </h2>
+            
+            {/* Contexto Regional */}
+            <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 rounded-lg p-6 mb-6 border border-blue-500/20">
+              <h3 className="text-lg font-semibold text-white mb-4">Contexto Energético Regional</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-medium text-blue-300 mb-2">Clima</h4>
+                  <p className="text-sm text-white/80 mb-3">
+                    {REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT].climate}
+                  </p>
+                  <h4 className="text-sm font-medium text-blue-300 mb-2">Perfil Energético</h4>
+                  <p className="text-sm text-white/80">
+                    {REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT].energyProfile}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-blue-300 mb-2">Desafíos Principales</h4>
+                  <ul className="text-sm text-white/80 mb-3">
+                    {REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT].mainChallenges.map((challenge, index) => (
+                      <li key={index} className="flex items-center mb-1">
+                        <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2 flex-shrink-0"></span>
+                        {challenge}
+                      </li>
+                    ))}
+                  </ul>
+                  <h4 className="text-sm font-medium text-blue-300 mb-2">Contexto Económico</h4>
+                  <p className="text-sm text-white/80">
+                    {REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT].economicContext}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Recomendaciones Estacionales */}
+            {SEASONAL_RECOMMENDATIONS[profile.region as keyof typeof SEASONAL_RECOMMENDATIONS] && (
+              <div className="bg-gradient-to-r from-green-900/20 to-teal-900/20 rounded-lg p-6 mb-6 border border-green-500/20">
+                <h3 className="text-lg font-semibold text-white mb-4">Recomendaciones Estacionales</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="bg-orange-900/10 rounded-lg p-4 border border-orange-500/20">
+                    <h4 className="text-sm font-medium text-orange-300 mb-3 flex items-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                      Verano
+                    </h4>
+                    <ul className="text-sm text-white/80">
+                      {SEASONAL_RECOMMENDATIONS[profile.region as keyof typeof SEASONAL_RECOMMENDATIONS].verano.map((rec, index) => (
+                        <li key={index} className="flex items-start mb-2">
+                          <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>
+                          {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="bg-blue-900/10 rounded-lg p-4 border border-blue-500/20">
+                    <h4 className="text-sm font-medium text-blue-300 mb-3 flex items-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
+                      </svg>
+                      Invierno
+                    </h4>
+                    <ul className="text-sm text-white/80">
+                      {SEASONAL_RECOMMENDATIONS[profile.region as keyof typeof SEASONAL_RECOMMENDATIONS].invierno.map((rec, index) => (
+                        <li key={index} className="flex items-start mb-2">
+                          <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>
+                          {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className="bg-purple-900/10 rounded-lg p-4 border border-purple-500/20">
+                  <h4 className="text-sm font-medium text-purple-300 mb-3">Consejos Específicos para tu Región</h4>
+                  <ul className="text-sm text-white/80">
+                    {SEASONAL_RECOMMENDATIONS[profile.region as keyof typeof SEASONAL_RECOMMENDATIONS].tips.map((tip, index) => (
+                      <li key={index} className="flex items-start mb-2">
+                        <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>
+                        {tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Programas Específicos por Región */}
+            {REGIONAL_PROGRAMS[profile.region as keyof typeof REGIONAL_PROGRAMS] && (
+              <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-lg p-6 mb-6 border border-purple-500/20">
+                <h3 className="text-lg font-semibold text-white mb-4">Programas Disponibles en tu Región</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {REGIONAL_PROGRAMS[profile.region as keyof typeof REGIONAL_PROGRAMS].map((program, index) => (
+                    <div key={index} className="bg-white/5 rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-colors">
+                      <div className="flex items-start">
+                        <svg className="w-5 h-5 text-purple-400 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                          <p className="text-sm text-white/90 font-medium">{program}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 p-4 bg-blue-900/20 rounded-lg border border-blue-500/20">
+                  <p className="text-sm text-blue-300">
+                    <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Para más información sobre estos programas, contacta al Ministerio de Energía o la Agencia de Sostenibilidad Energética.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Patrones de Consumo Regional */}
+            {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS] && (
+              <div className="bg-gradient-to-r from-teal-900/20 to-cyan-900/20 rounded-lg p-6 border border-teal-500/20">
+                <h3 className="text-lg font-semibold text-white mb-4">Patrones de Consumo en tu Región</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-teal-300 mb-2">Consumo Promedio</h4>
+                    <p className="text-2xl font-bold text-white mb-1">
+                      {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].averageMonthly}
+                    </p>
+                    <p className="text-xs text-white/60">kWh/mes</p>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-teal-300 mb-2">Temporada Pico</h4>
+                    <p className="text-lg font-semibold text-white capitalize">
+                      {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].peakSeason}
+                    </p>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-teal-300 mb-2">Meses Críticos</h4>
+                    <p className="text-sm text-white/80">
+                      {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].challengeMonths.join(', ')}
+                    </p>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-teal-300 mb-2">Hora Pico</h4>
+                    <p className="text-sm text-white/80">
+                      {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].tipicalHour}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-teal-300 mb-3">Principales Usos de Energía</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].mainUses.map((use, index) => (
+                      <div key={index} className="flex items-center bg-white/3 rounded-lg p-3">
+                        <div className={`w-3 h-3 rounded-full mr-3 ${
+                          index === 0 ? 'bg-red-400' : 
+                          index === 1 ? 'bg-orange-400' : 
+                          index === 2 ? 'bg-yellow-400' : 'bg-green-400'
+                        }`}></div>
+                        <p className="text-sm text-white/80">{use}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
       </main>
     </div>
   )
