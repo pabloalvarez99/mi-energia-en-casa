@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { COMMON_APPLIANCES, REGIONS, CO2_FACTOR, ELECTRICITY_RATES, REGIONAL_CONTEXT, SEASONAL_RECOMMENDATIONS, REGIONAL_PROGRAMS, REGIONAL_CONSUMPTION_PATTERNS, CLIMATE_ZONES, ENERGY_SAVING_TIPS, GOVERNMENT_PROGRAMS } from '@/lib/constants'
+import { COMMON_APPLIANCES, REGIONS, CO2_FACTOR, ELECTRICITY_RATES, REGIONAL_CONTEXT, SEASONAL_RECOMMENDATIONS, REGIONAL_CONSUMPTION_PATTERNS, CLIMATE_ZONES } from '@/lib/constants'
 import { calculateMonthlyKwh, calculateCostCLP, calculateEmissionsKg } from '@/lib/calculations'
 import type { ApplianceDefinition, ApplianceEntry, ScenarioDoc } from '@/lib/types'
 import { formatCurrencyCLP, formatNumber } from '@/lib/format'
@@ -1038,7 +1038,6 @@ export default function DashboardPage() {
                   { title: 'Horario Valle', desc: 'Use electrodomésticos de alto consumo en horarios de menor tarifa', saving: '15%' },
                   { title: 'Temperatura Óptima', desc: 'Configure el aire acondicionado en 24°C en verano', saving: '10%' },
                   { title: 'Mantenimiento', desc: 'Limpie filtros de aire acondicionado mensualmente', saving: '5%' },
-                  { title: 'Aislamiento', desc: 'Selle puertas y ventanas para evitar fugas térmicas', saving: '20%' },
                   { title: 'Electrodomésticos', desc: 'Prefiera modelos con certificación A++ o superior', saving: '30%' },
                 ].map((tip, index) => (
                   <div key={index} className="p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
@@ -1058,338 +1057,50 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* Recommendations section */}
-        <section className="card">
-          <h3 className="text-xl font-semibold mb-4">
-            Recomendaciones de Ahorro Energético
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              {
-                title: 'Iluminación Eficiente',
-                tip: 'Reemplace ampolletas incandescentes por LED',
-                saving: 'Ahorro estimado: hasta 80% en iluminación',
-                color: 'text-success'
-              },
-              {
-                title: 'Modo Standby',
-                tip: 'Desconecte aparatos o use regletas con interruptor',
-                saving: 'Ahorro estimado: 5-10% del consumo total',
-                color: 'text-warning'
-              },
-              {
-                title: 'Refrigeración Óptima',
-                tip: 'Ajuste termostato: refrigerador 4°C, freezer -18°C',
-                saving: 'Ahorro estimado: hasta 15% en refrigeración',
-                color: 'text-brand'
-              },
-              {
-                title: 'Uso Eficiente del Agua Caliente',
-                tip: 'Hierva solo el agua necesaria y use hervidor eficiente',
-                saving: 'Ahorro estimado: 30-50% en calentamiento',
-                color: 'text-success'
-              },
-              {
-                title: 'Programación Horaria',
-                tip: 'Use temporizadores para optimizar horas de uso',
-                saving: 'Ahorro variable según tarifa horaria',
-                color: 'text-warning'
-              },
-              {
-                title: 'Aislamiento Térmico',
-                tip: 'Mejore ventanas y puertas para reducir pérdidas',
-                saving: 'Ahorro estimado: hasta 30% en climatización',
-                color: 'text-brand'
-              }
-            ].map((rec, index) => (
-              <div key={index} className="card bg-white/3 border-white/5 hover:bg-white/5 transition-colors">
-                <div>
-                  <h4 className="font-semibold mb-2">{rec.title}</h4>
-                  <p className="text-sm text-white/80 mb-3">{rec.tip}</p>
-                  <p className={`text-xs font-medium ${rec.color}`}>
-                    {rec.saving}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-6 p-4 rounded-lg bg-gradient-to-r from-success/10 to-brand/10 border border-success/20">
-            <h4 className="font-semibold text-success mb-2">Impacto Ambiental</h4>
-            <p className="text-sm text-white/90">
-              Cada kWh ahorrado evita aproximadamente <span className="font-medium">{formatNumber(cf)} kg de CO₂</span> en su región. 
-              Los pequeños cambios contribuyen significativamente a la reducción de emisiones.
-            </p>
-          </div>
-        </section>
-
-        {/* Consejos de Eficiencia Energética */}
-        <section className="card">
-          <h3 className="text-xl font-semibold mb-4">
-            Consejos de Eficiencia Energética
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ENERGY_SAVING_TIPS.map((section) => (
-              <div key={section.category} className="bg-gray-700/50 rounded-lg p-4">
-                <h3 className="font-semibold text-white mb-3 flex items-center">
-                  <span className="mr-2">
-                    {section.category === 'Vivienda' && '🏠'}
-                    {section.category === 'Cocina' && '🍳'}
-                    {section.category === 'Baño' && '🚿'}
-                    {section.category === 'Iluminación' && '💡'}
-                    {section.category === 'Electrodomésticos' && '📱'}
-                    {section.category === 'Transporte' && '🚗'}
-                  </span>
-                  {section.category}
-                </h3>
-                <ul className="space-y-2">
-                  {section.tips.map((tip, index) => (
-                    <li key={index} className="text-sm text-white/80 leading-snug flex items-start">
-                      <span className="mr-2 text-green-400 flex-shrink-0 mt-1">•</span>
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Programas Gubernamentales */}
-        <section className="card">
-          <h3 className="text-xl font-semibold mb-4">
-            Programas de Apoyo del Gobierno
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {GOVERNMENT_PROGRAMS.map((program) => (
-              <div key={program.name} className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-lg p-4 border border-blue-500/20">
-                <h3 className="font-semibold text-white mb-2">{program.name}</h3>
-                <p className="text-sm text-white/70 mb-3">{program.description}</p>
-                <div className="flex flex-col space-y-2">
-                  <span className="text-xs text-blue-400">{program.institution}</span>
-                  <a 
-                    href={program.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-xs text-green-400 hover:text-green-300 underline"
-                  >
-                    Más información →
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Información sobre Etiquetas de Eficiencia */}
-        <section className="card">
-          <h3 className="text-xl font-semibold mb-4">
-            Etiquetas de Eficiencia Energética
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {COMMON_APPLIANCES.map((app, index) => (
-                  <span 
-                    key={index} 
-                    className={`px-3 py-1 rounded text-sm font-medium ${
-                      index < 3 ? 'bg-green-600 text-white' :
-                      index < 5 ? 'bg-yellow-600 text-white' :
-                      'bg-red-600 text-white'
-                    }`}
-                  >
-                    {app.name}
-                  </span>
-                ))}
-              </div>
-              <p className="text-sm text-white/70">
-                Basado en los electrodomésticos más comunes en tu región.
-              </p>
-            </div>
-            <div className="text-right">
-              <a 
-                href="https://www.energysavingtips.org/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm"
-              >
-                Más consejos de ahorro →
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* Información Específica por Región */}
+        {/* Información Regional Esencial */}
         {profile && REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT] && (
           <section className="card">
-            <h2 className="text-xl font-semibold mb-6 text-white flex items-center">
-              <svg className="w-6 h-6 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h3 className="text-lg font-semibold mb-4 text-white flex items-center">
+              <svg className="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               Información para {REGIONS[profile.region as keyof typeof REGIONS].name}
-            </h2>
+            </h3>
             
-            {/* Contexto Regional */}
-            <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 rounded-lg p-6 mb-6 border border-blue-500/20">
-              <h3 className="text-lg font-semibold text-white mb-4">Contexto Energético Regional</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-blue-300 mb-2">Clima</h4>
-                  <p className="text-sm text-white/80 mb-3">
-                    {REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT].climate}
-                  </p>
-                  <h4 className="text-sm font-medium text-blue-300 mb-2">Perfil Energético</h4>
-                  <p className="text-sm text-white/80">
-                    {REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT].energyProfile}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-blue-300 mb-2">Desafíos Principales</h4>
-                  <ul className="text-sm text-white/80 mb-3">
-                    {REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT].mainChallenges.map((challenge, index) => (
-                      <li key={index} className="flex items-center mb-1">
-                        <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2 flex-shrink-0"></span>
-                        {challenge}
-                      </li>
-                    ))}
-                  </ul>
-                  <h4 className="text-sm font-medium text-blue-300 mb-2">Contexto Económico</h4>
-                  <p className="text-sm text-white/80">
-                    {REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT].economicContext}
-                  </p>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 rounded-lg p-4 border border-blue-500/20">
+                <h4 className="text-sm font-medium text-blue-300 mb-2">Clima y Energía</h4>
+                <p className="text-sm text-white/80 mb-2">
+                  {REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT].climate}
+                </p>
+                <p className="text-xs text-white/60">
+                  {REGIONAL_CONTEXT[profile.region as keyof typeof REGIONAL_CONTEXT].energyProfile}
+                </p>
+              </div>
+              
+              <div className="bg-gradient-to-r from-green-900/20 to-teal-900/20 rounded-lg p-4 border border-green-500/20">
+                <h4 className="text-sm font-medium text-green-300 mb-2">Consumo Promedio Regional</h4>
+                {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS] && (
+                  <div>
+                    <p className="text-lg font-bold text-white">
+                      {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].averageMonthly} kWh/mes
+                    </p>
+                    <p className="text-xs text-white/60">
+                      Pico: {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].peakSeason}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Recomendaciones Estacionales */}
+            {/* Recomendación principal por región */}
             {SEASONAL_RECOMMENDATIONS[profile.region as keyof typeof SEASONAL_RECOMMENDATIONS] && (
-              <div className="bg-gradient-to-r from-green-900/20 to-teal-900/20 rounded-lg p-6 mb-6 border border-green-500/20">
-                <h3 className="text-lg font-semibold text-white mb-4">Recomendaciones Estacionales</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="bg-orange-900/10 rounded-lg p-4 border border-orange-500/20">
-                    <h4 className="text-sm font-medium text-orange-300 mb-3 flex items-center">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                      Verano
-                    </h4>
-                    <ul className="text-sm text-white/80">
-                      {SEASONAL_RECOMMENDATIONS[profile.region as keyof typeof SEASONAL_RECOMMENDATIONS].verano.map((rec, index) => (
-                        <li key={index} className="flex items-start mb-2">
-                          <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="bg-blue-900/10 rounded-lg p-4 border border-blue-500/20">
-                    <h4 className="text-sm font-medium text-blue-300 mb-3 flex items-center">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
-                      </svg>
-                      Invierno
-                    </h4>
-                    <ul className="text-sm text-white/80">
-                      {SEASONAL_RECOMMENDATIONS[profile.region as keyof typeof SEASONAL_RECOMMENDATIONS].invierno.map((rec, index) => (
-                        <li key={index} className="flex items-start mb-2">
-                          <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                <div className="bg-purple-900/10 rounded-lg p-4 border border-purple-500/20">
-                  <h4 className="text-sm font-medium text-purple-300 mb-3">Consejos Específicos para tu Región</h4>
-                  <ul className="text-sm text-white/80">
-                    {SEASONAL_RECOMMENDATIONS[profile.region as keyof typeof SEASONAL_RECOMMENDATIONS].tips.map((tip, index) => (
-                      <li key={index} className="flex items-start mb-2">
-                        <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>
-                        {tip}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            {/* Programas Específicos por Región */}
-            {REGIONAL_PROGRAMS[profile.region as keyof typeof REGIONAL_PROGRAMS] && (
-              <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-lg p-6 mb-6 border border-purple-500/20">
-                <h3 className="text-lg font-semibold text-white mb-4">Programas Disponibles en tu Región</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {REGIONAL_PROGRAMS[profile.region as keyof typeof REGIONAL_PROGRAMS].map((program, index) => (
-                    <div key={index} className="bg-white/5 rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-colors">
-                      <div className="flex items-start">
-                        <svg className="w-5 h-5 text-purple-400 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div>
-                          <p className="text-sm text-white/90 font-medium">{program}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 p-4 bg-blue-900/20 rounded-lg border border-blue-500/20">
-                  <p className="text-sm text-blue-300">
-                    <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Para más información sobre estos programas, contacta al Ministerio de Energía o la Agencia de Sostenibilidad Energética.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Patrones de Consumo Regional */}
-            {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS] && (
-              <div className="bg-gradient-to-r from-teal-900/20 to-cyan-900/20 rounded-lg p-6 border border-teal-500/20">
-                <h3 className="text-lg font-semibold text-white mb-4">Patrones de Consumo en tu Región</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-teal-300 mb-2">Consumo Promedio</h4>
-                    <p className="text-2xl font-bold text-white mb-1">
-                      {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].averageMonthly}
-                    </p>
-                    <p className="text-xs text-white/60">kWh/mes</p>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-teal-300 mb-2">Temporada Pico</h4>
-                    <p className="text-lg font-semibold text-white capitalize">
-                      {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].peakSeason}
-                    </p>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-teal-300 mb-2">Meses Críticos</h4>
-                    <p className="text-sm text-white/80">
-                      {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].challengeMonths.join(', ')}
-                    </p>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-teal-300 mb-2">Hora Pico</h4>
-                    <p className="text-sm text-white/80">
-                      {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].tipicalHour}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-teal-300 mb-3">Principales Usos de Energía</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {REGIONAL_CONSUMPTION_PATTERNS[profile.region as keyof typeof REGIONAL_CONSUMPTION_PATTERNS].mainUses.map((use, index) => (
-                      <div key={index} className="flex items-center bg-white/3 rounded-lg p-3">
-                        <div className={`w-3 h-3 rounded-full mr-3 ${
-                          index === 0 ? 'bg-red-400' : 
-                          index === 1 ? 'bg-orange-400' : 
-                          index === 2 ? 'bg-yellow-400' : 'bg-green-400'
-                        }`}></div>
-                        <p className="text-sm text-white/80">{use}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className="mt-4 p-4 bg-yellow-900/20 rounded-lg border border-yellow-500/20">
+                <h4 className="text-sm font-medium text-yellow-300 mb-2">Recomendación Principal</h4>
+                <p className="text-sm text-white/80">
+                  {SEASONAL_RECOMMENDATIONS[profile.region as keyof typeof SEASONAL_RECOMMENDATIONS].tips[0]}
+                </p>
               </div>
             )}
           </section>
